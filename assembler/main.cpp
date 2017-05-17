@@ -8,7 +8,9 @@
 
 #include <iostream>
 #include <fstream>
+#include <string>
 #include "error.hpp"
+#include "elf_header.hpp"
 
 using namespace std;
 
@@ -27,11 +29,20 @@ int main(int argc, const char * argv[]) {
    outputFile.open(outputFileName);
    
    if (inputFile.is_open() && outputFile.is_open()) {
-      string line;
+      Elf32_Ehdr hdr = Elf32_Ehdr();
+      outputFile << hdr;
       
-      while(getline(inputFile, line)) {
-         outputFile << line << endl;
-      }
+//      string line;
+//      while(getline(inputFile, line)) {
+//         line += char(0b1000001);
+//         char *chars = new char[line.length()];
+//         copy(line.begin(), line.end(), chars);
+//         
+//         for (int i = 0; i < line.length(); i++) {
+//            outputFile << chars[i];
+//         }
+//         cout << line;
+//      }
       
       inputFile.close();
       outputFile.close();

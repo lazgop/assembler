@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7B6E28471ECCBA5E006EA1FC /* elf_header.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B6E28451ECCBA5E006EA1FC /* elf_header.cpp */; };
 		7BDF6DBC1ECC931800A412F5 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7BDF6DBB1ECC931800A412F5 /* main.cpp */; };
 		7BDF6DC71ECC959100A412F5 /* error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7BDF6DC51ECC959100A412F5 /* error.cpp */; };
 /* End PBXBuildFile section */
@@ -24,6 +25,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		7B6E28451ECCBA5E006EA1FC /* elf_header.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = elf_header.cpp; sourceTree = "<group>"; };
+		7B6E28461ECCBA5E006EA1FC /* elf_header.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = elf_header.hpp; sourceTree = "<group>"; };
 		7BDF6DB81ECC931800A412F5 /* assembler */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = assembler; sourceTree = BUILT_PRODUCTS_DIR; };
 		7BDF6DBB1ECC931800A412F5 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		7BDF6DC51ECC959100A412F5 /* error.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = error.cpp; sourceTree = "<group>"; };
@@ -63,6 +66,8 @@
 				7BDF6DBB1ECC931800A412F5 /* main.cpp */,
 				7BDF6DC51ECC959100A412F5 /* error.cpp */,
 				7BDF6DC61ECC959100A412F5 /* error.hpp */,
+				7B6E28451ECCBA5E006EA1FC /* elf_header.cpp */,
+				7B6E28461ECCBA5E006EA1FC /* elf_header.hpp */,
 			);
 			path = assembler;
 			sourceTree = "<group>";
@@ -125,6 +130,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7B6E28471ECCBA5E006EA1FC /* elf_header.cpp in Sources */,
 				7BDF6DC71ECC959100A412F5 /* error.cpp in Sources */,
 				7BDF6DBC1ECC931800A412F5 /* main.cpp in Sources */,
 			);
@@ -257,6 +263,7 @@
 				7BDF6DC11ECC931800A412F5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
