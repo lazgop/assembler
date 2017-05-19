@@ -1,6 +1,6 @@
 .data
 
-a: DD a
+a: DD a, 2 DUP 234243+123
 ORG 0x20
 
 .text.12

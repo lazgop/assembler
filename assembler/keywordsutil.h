@@ -17,6 +17,6 @@ bool isLabel(string word);
 bool isDirective(string word);
 bool isRegister(string word);
 bool isConstantExpression(string word);
-
+int getExpressionValue(string expr);
 
 #endif /* keywordsutil_h */

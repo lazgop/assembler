@@ -17,6 +17,7 @@
 #include "symboltable.h"
 #include "symboltableentry.h"
 #include "instructions.h"
+#include "directives.h"
 
 using namespace std;
 
@@ -82,7 +83,11 @@ void assemblerFistPass(list<InputLine> *inputFile) {
          }
          
          // TODO: Directive
-         
+         Directive dir = Directive(curWords);
+         if (!(dir.getType().compare("NONE") == 0)) {
+            locationCounter += dir.getSize();
+            continue;
+         }
       }
       //inc lc
    }

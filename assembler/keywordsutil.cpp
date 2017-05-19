@@ -162,3 +162,8 @@ bool isConstantExpression(string expression) {
    
    return true;
 }
+
+int getExpressionValue(string expr) {
+   // TODO: Finish method
+   return stoi(expr);
+}

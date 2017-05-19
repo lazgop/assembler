@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <iostream>
 #include "keywordsutil.h"
 
 using namespace std;
@@ -25,26 +26,28 @@ class Directive{
    static int otherDirsLength;
    
    string type;
+   int constSize;
    int size;
    
 public:
    Directive(vector<string> text){
       switch(getType(text[0], text[1])){
-         case 0: // data defining direcive
+         case 0: {// data defining direcive
             switch (getDDDType(text[0])) {
                case 0: // "DB"
-                  size = 4;
+                  constSize = 1;
                   break;
                case 1: // "DW"
-                  size = 8;
+                  constSize = 2;
                   break;
-               case 3: // "DD"
-                  size = 16;
-                  break;
-               default:
+               case 2: // "DD"
+                  constSize = 4;
                   break;
             }
+            vector<string> rem = convertRemainder(text);
+            size = constSize * (int)rem.size();
             break;
+         }
          case 1: // regular Directive
             switch (getRDType(text[0])) {
                case 0: // ".global"
@@ -113,6 +116,48 @@ public:
          }
       }
       return -1;
+   }
+   
+   vector<string> convertRemainder(vector<string> remV) {
+      string rem = "";
+      for (int i=1; i<remV.size(); i++) {
+         rem+=remV[i];
+      }
+      
+      int curi = 0;
+      vector<string> sepByCommas = vector<string>();
+      for (int i=0; i<rem.length(); i++) {
+         if (rem[i] == ',') {
+            if (curi == i) {
+               throw exception();
+            }
+            sepByCommas.push_back(rem.substr(curi, i - curi));
+            curi = i + 1;
+         }
+      }
+      
+      if (curi == rem.length()) {
+         throw exception();
+      }
+      
+      vector<string> convertedVector = vector<string>();
+      sepByCommas.push_back(rem.substr(curi, rem.length() - curi));
+      for (int i=0; i < sepByCommas.size(); i++) {
+         if (sepByCommas[i].find("DUP") != string::npos) {
+            string leftOfDup = sepByCommas[i].substr(0, sepByCommas[i].find("DUP"));
+            string rightOfDup = sepByCommas[i].substr(sepByCommas[i].find("DUP") + 3, sepByCommas[i].length() - (sepByCommas[i].find("DUP") + 3));
+            
+            int leftOfDupVal = getExpressionValue(leftOfDup);
+            
+            for (int i=0; i < leftOfDupVal; i++) {
+               convertedVector.push_back(rightOfDup);
+            }
+         } else {
+            convertedVector.push_back(sepByCommas[i]);
+         }
+      }
+      
+      return convertedVector;
    }
 };
 
