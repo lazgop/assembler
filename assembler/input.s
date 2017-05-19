@@ -11,6 +11,7 @@ ORG 0x20
  LOAD R3, [r4]
  x: JZ R0, [R1]
 JZ R0, $x
+.bss
 
 .end
 

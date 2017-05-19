@@ -163,6 +163,10 @@ bool isConstantExpression(string expression) {
    return true;
 }
 
+bool isCalculatableExpression(string expr) {
+   return true;
+}
+
 int getExpressionValue(string expr) {
    // TODO: Finish method
    return stoi(expr);

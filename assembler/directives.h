@@ -14,6 +14,10 @@
 #include <vector>
 #include <iostream>
 #include "keywordsutil.h"
+#include "symboltable.h"
+#include "symboltableentry.h"
+#include "usymboltable.h"
+#include "usymboltableentry.h"
 
 using namespace std;
 
@@ -60,16 +64,44 @@ public:
                   break;
             }
             break;
-         case 2: // other Directive
-            // "DEF" - ?
+         case 2:{ // other Directive
+            // "DEF"
+            string rem = "";
+            for (int i=2; i<text.size(); i++) {
+               rem+=text[i];
+            }
+            if (isConstantExpression(rem)) {
+               if (isCalculatableExpression(rem)) {
+                  int val = getExpressionValue(rem);
+                  SymbolTableEntry entry = SymbolTableEntry();
+                  entry.type = "SYM";
+                  entry.numID = (int)SymbolTable::entries.size();
+                  entry.name = text[0];
+                  entry.flags = "ABS";
+                  entry.sectionID = -1;
+                  entry.addr = val;
+                  SymbolTable::entries.push_back(entry);
+                  // TODO: Pass through USymbolTable!
+                  Symb
+               } else {
+                  USymbolTableEntry uste = USymbolTableEntry();
+                  uste.name = text[0];
+                  uste.expression = rem;
+                  USymbolTable::entries.push_back(uste);
+               }
+            } else {
+               throw exception();
+            }
             size = 0;
             //TODO
             break;
+         }
          default:
             type = "NONE";
             break;
       }
    }
+   
    
    int getSize() {
       return size;

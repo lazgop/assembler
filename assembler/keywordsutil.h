@@ -18,5 +18,6 @@ bool isDirective(string word);
 bool isRegister(string word);
 bool isConstantExpression(string word);
 int getExpressionValue(string expr);
+bool isCalculatableExpression(string expr);
 
 #endif /* keywordsutil_h */

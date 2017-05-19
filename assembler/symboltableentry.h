@@ -9,6 +9,8 @@
 #ifndef symboltableentry_h
 #define symboltableentry_h
 
+using namespace std;
+
 class SymbolTableEntry{
 public:
    string type;  //SEG/SYM

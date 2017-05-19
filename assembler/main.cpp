@@ -24,6 +24,7 @@ using namespace std;
 void assemblerFistPass(list<InputLine> *inputFile) {
    
    int locationCounter = 0;
+   int addressCounter = 0;
    int lastSectionIndex = -1;
    
    for (list<InputLine>::iterator iterator = inputFile->begin(); iterator != inputFile->end(); iterator++) {
@@ -39,11 +40,14 @@ void assemblerFistPass(list<InputLine> *inputFile) {
          entry.numID = (int)SymbolTable::entries.size();
          entry.name = word;
          entry.sectionID = entry.numID;
+         addressCounter += locationCounter;
+         entry.addr = addressCounter;
          // TODO: Other fields
          
          if (lastSectionIndex != -1) {
             SymbolTable::entries[lastSectionIndex].size = locationCounter;
          }
+         
          locationCounter = 0;
          
          SymbolTable::entries.push_back(entry);
