@@ -8,6 +8,8 @@
 
 #include <string>
 #include <stdlib.h>
+#include <vector>
+#include <iostream>
 
 using namespace std;
 
@@ -21,6 +23,19 @@ bool isInteger(const std::string & s) {
    strtol(s.c_str(), &p, 10) ;
    
    return (*p == 0) ;
+}
+
+char hexDigits[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F'};
+int hexDigitsLength = 21;
+
+bool isHexDigit(char c) {
+   for (int i = 0; i < hexDigitsLength; i++) {
+      if (hexDigits[i] == c) {
+         return true;
+      }
+   }
+   
+   return false;
 }
 
 bool isSection(string word) {
@@ -73,4 +88,77 @@ bool isRegister(string word){
       }
    }
    return false;
+}
+
+bool isConstantExpression(string expression) {
+   vector<string> expressionParts = vector<string>();
+   string currentPart = "";
+   for (int i = 0; i < expression.length(); i++) {
+      if (expression[i] == '(' || expression[i] == ')') {
+         if (currentPart != "") {
+            expressionParts.push_back(currentPart);
+            currentPart = "";
+         }
+         char c = expression[i];
+         expressionParts.push_back(string(1,c));
+      } else if (expression[i] == '+' || expression[i] == '-' || expression[i] == '*' || expression[i] == '/') {
+         if (currentPart != "") {
+            expressionParts.push_back(currentPart);
+            currentPart = "";
+         }
+         char c = expression[i];
+         expressionParts.push_back(string(1,c));
+      } else if ((expression[i] >= '0' && expression[i] <= '9') || (expression[i] >= 'a' && expression[i] <= 'z') || (expression[i] >= 'A' && expression[i] <= 'Z')) {
+         char c = expression[i];
+         currentPart += string(1,c);
+      } else if (expression[i] == '\'') {
+         expressionParts.push_back(expression.substr(i, 3));
+         i += 2;
+      }
+   }
+   
+   if (currentPart != "") {
+      expressionParts.push_back(currentPart);
+      currentPart = "";
+   }
+   
+   for (int i=0; i<expressionParts.size(); i++) {
+      cout << expressionParts[i] << endl;
+   }
+   
+   int openBracketsCounter = 0;
+   for (int i=0; i<expressionParts.size(); i++) {
+      if (expressionParts[i].substr(0,2) == "0x") {
+         for (int j=2; j < expressionParts[i].length(); j++) {
+            if (!isHexDigit(expressionParts[i][j])) {
+               return false;
+            }
+         }
+         
+         
+      } else if (expressionParts[i].substr(0,2) == "0b") {
+         for (int j=2; j<expressionParts[i].length(); j++) {
+            if (expressionParts[i][j] != '0' && expressionParts[i][j] != '1') {
+               return false;
+            }
+         }
+         
+         
+      } else if (isInteger(expressionParts[i])) {
+         
+      } else if (expressionParts[i] == "(") {
+         openBracketsCounter++;
+      } else if (expressionParts[i] == ")") {
+         if (openBracketsCounter <= 0) {
+            return false;
+         }
+         openBracketsCounter--;
+      } else if (expressionParts[i][0] == '\'' && expressionParts[i][2] == '\'') {
+         
+      }
+   }
+   
+   // TODO: Finish method
+   
+   return true;
 }

@@ -33,13 +33,6 @@ bool SymbolTable::contains(string name){
    }
    return false;
 }
-//string type;  //SEG/SYM
-//int numID;
-//string name;
-//int sectionID; // -1 for ABS
-//int addr; //0x...
-//int size; //0x...
-//string flags;
 void SymbolTable::outputSymbolTable() {
    cout << setw(10) << "TYPE"
    << setw(10) << "numID"

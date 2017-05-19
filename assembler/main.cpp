@@ -99,6 +99,9 @@ int main(int argc, const char * argv[]) {
       return 1;
    }
    
+//   isConstantExpression("25+( smilja*11 - (24)) / gs4 + 'c' + 0x123");
+//   cout << isInteger("FF2");
+   
    list<InputLine> *inputFile = FileManager::readInputFile(argv[1]);
    
    try {

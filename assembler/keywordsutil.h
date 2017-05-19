@@ -16,5 +16,7 @@ bool isSection(string word);
 bool isLabel(string word);
 bool isDirective(string word);
 bool isRegister(string word);
+bool isConstantExpression(string word);
+
 
 #endif /* keywordsutil_h */
