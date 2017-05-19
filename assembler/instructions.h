@@ -12,7 +12,9 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <iostream>
 #include "keywordsutil.h"
+#include "addressing.hpp"
 
 using namespace std;
 
@@ -39,7 +41,7 @@ public:
                   size = 4;
                   break;
                case 1: case 2: // "JMP", "CALL"
-                  if (isRegister(text[1].substr(1, text[1].length() - 1)) && text[1][0] == '[' && text[1][text[1].length()] == ']') {
+                  if (Addressing::isRegisterIndirect(text[1])) {
                      size = 4;
                   } else {
                      size = 8;
@@ -49,7 +51,7 @@ public:
                   size = 4;
                   break;
                case 4: case 5: case 6: case 7: case 8: case 9: // "JZ", "JNZ", "JGZ", "JGEZ", "JLZ", "JLEZ"
-                  if (isRegister(text[2].substr(1, text[2].length() - 1)) && text[2][0] == '[' && text[2][text[2].length()] == ']') {
+                  if (Addressing::isRegisterIndirect(text[2])) {
                      size = 4;
                   } else {
                      size = 8;
@@ -62,9 +64,9 @@ public:
          }
          case 1: { // LS
             type = "LS";
-            if (isRegister(text[2])) {
+            if (Addressing::isRegisterDirect(text[2])) {
                size = 4;
-            } else if (isRegister(text[2].substr(1, text[2].length() - 1)) && text[2][0] == '[' && text[2][text[2].length()] == ']') {
+            } else if (Addressing::isRegisterIndirect(text[2])) {
                size = 4;
             } else {
                size = 8;

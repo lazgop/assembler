@@ -10,6 +10,7 @@
 #define symboltable_h
 
 #include <list>
+#include <iomanip>
 #include "symboltableentry.h"
 
 using namespace std;
@@ -40,23 +41,23 @@ bool SymbolTable::contains(string name){
 //int size; //0x...
 //string flags;
 void SymbolTable::outputSymbolTable() {
-   cout << " TYPE "
-   << " numID "
-   << " name "
-   << " sectionID "
-   << " addr "
-   << " size "
-   << " flags "
+   cout << setw(10) << "TYPE"
+   << setw(10) << "numID"
+   << setw(10) << "name"
+   << setw(10) << "sectionID"
+   << setw(10) << "addr"
+   << setw(10) << "size"
+   << setw(10) << "flags"
    << endl;
    
    for (int i=0; i < SymbolTable::entries.size(); i++) {
-      cout << " " << SymbolTable::entries[i].type
-      << " " << SymbolTable::entries[i].numID
-      << " " << SymbolTable::entries[i].name
-      << " " << SymbolTable::entries[i].sectionID
-      << " " << SymbolTable::entries[i].addr
-      << " " << SymbolTable::entries[i].size
-      << " " << SymbolTable::entries[i].flags
+      cout << setw(10) << SymbolTable::entries[i].type
+      << setw(10) << SymbolTable::entries[i].numID
+      << setw(10) << SymbolTable::entries[i].name
+      << setw(10) << SymbolTable::entries[i].sectionID
+      << setw(10) << SymbolTable::entries[i].addr
+      << setw(10) << SymbolTable::entries[i].size
+      << setw(10) << SymbolTable::entries[i].flags
       << endl;
    }
 }

@@ -8,6 +8,7 @@ ORG 0x20
  LOAD R1, a
  LOAD R2, #a
  LOAD R3, $a
+ LOAD R3, [r4]
  x: JZ R0, [R1]
 JZ R0, $x
 
