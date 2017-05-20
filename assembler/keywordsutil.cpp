@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <iostream>
+#include "symboltable.h"
 
 using namespace std;
 
@@ -122,9 +123,9 @@ bool isConstantExpression(string expression) {
       currentPart = "";
    }
    
-   for (int i=0; i<expressionParts.size(); i++) {
-      cout << expressionParts[i] << endl;
-   }
+//   for (int i=0; i<expressionParts.size(); i++) {
+//      cout << expressionParts[i] << endl;
+//   }
    
    int openBracketsCounter = 0;
    for (int i=0; i<expressionParts.size(); i++) {
@@ -159,15 +160,33 @@ bool isConstantExpression(string expression) {
    }
    
    // TODO: Finish method
-   
    return true;
 }
 
 bool isCalculatableExpression(string expr) {
-   return true;
+   if (isInteger(expr)) {
+      return true;
+   }
+   
+   for(int i=0; i < SymbolTable::entries.size(); i++) {
+      if (SymbolTable::entries[i].name == expr) {
+         return true;
+      }
+   }
+   return false;
 }
 
 int getExpressionValue(string expr) {
    // TODO: Finish method
-   return stoi(expr);
+   if (isInteger(expr)) {
+      return stoi(expr);
+   }
+   
+   for(int i=0; i < SymbolTable::entries.size(); i++) {
+      if (SymbolTable::entries[i].name == expr) {
+         return SymbolTable::entries[i].addr;
+      }
+   }
+   
+   return 0;
 }

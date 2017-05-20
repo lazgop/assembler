@@ -81,8 +81,34 @@ public:
                   entry.sectionID = -1;
                   entry.addr = val;
                   SymbolTable::entries.push_back(entry);
-                  // TODO: Pass through USymbolTable!
-                  Symb
+                  
+                  bool calculatedSymbolInThisPass = false;
+                  do {
+                     calculatedSymbolInThisPass = false;
+                     for (int i=0; i < USymbolTable::entries.size(); i++) {
+                        if(isCalculatableExpression(USymbolTable::entries[i].expression) && USymbolTable::entries[i].name != "-1") {
+                           int val = getExpressionValue(USymbolTable::entries[i].expression);
+                           SymbolTableEntry entry = SymbolTableEntry();
+                           entry.type = "SYM";
+                           entry.numID = (int)SymbolTable::entries.size();
+                           entry.name = USymbolTable::entries[i].name;
+                           entry.flags = "ABS";
+                           entry.sectionID = -1;
+                           entry.addr = val;
+                           SymbolTable::entries.push_back(entry);
+                           calculatedSymbolInThisPass = true;
+                           USymbolTable::entries[i].name = "-1";
+                        }
+                     }
+                  }while(calculatedSymbolInThisPass);
+                  
+                  vector<USymbolTableEntry> tmpUSymbTbl = vector<USymbolTableEntry>();
+                  for (int i=0; i < USymbolTable::entries.size(); i++) {
+                     if (USymbolTable::entries[i].name != "-1") {
+                        tmpUSymbTbl.push_back(USymbolTable::entries[i]);
+                     }
+                  }
+                  USymbolTable::entries = tmpUSymbTbl;
                } else {
                   USymbolTableEntry uste = USymbolTableEntry();
                   uste.name = text[0];
