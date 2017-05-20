@@ -39,12 +39,15 @@ public:
          case 0: {// data defining direcive
             switch (getDDDType(text[0])) {
                case 0: // "DB"
+                  type = "DB";
                   constSize = 1;
                   break;
                case 1: // "DW"
+                  type = "DW";
                   constSize = 2;
                   break;
                case 2: // "DD"
+                  type = "DD";
                   constSize = 4;
                   break;
             }
@@ -55,21 +58,33 @@ public:
          case 1: // regular Directive
             switch (getRDType(text[0])) {
                case 0: // ".global"
+                  type = ".global";
                   size = 0;
                   break;
-               case 1: // "ORG"
-                  size = 0;
+               case 1: {// "ORG"
+                  type = "ORG";
+                  string rem = getRemainderFromVectorPosition(text, 1);
+                  if (isConstantExpression(rem)) {
+                     if (isCalculatableExpression(rem)) {
+                        size = getExpressionValue(rem);
+                     } else {
+                        cout << "Error: Const expression in ORG directive is not calculatable!" << endl;
+                        throw exception();
+                     }
+                  } else {
+                     cout << "Error: Const expression in ORG directive is not valid expression!" << endl;
+                     throw exception();
+                  }
                   break;
+               }
                default:
                   break;
             }
             break;
          case 2:{ // other Directive
             // "DEF"
-            string rem = "";
-            for (int i=2; i<text.size(); i++) {
-               rem+=text[i];
-            }
+            type = "DEF";
+            string rem = getRemainderFromVectorPosition(text, 2);
             if (isConstantExpression(rem)) {
                if (isCalculatableExpression(rem)) {
                   int val = getExpressionValue(rem);
@@ -177,10 +192,7 @@ public:
    }
    
    vector<string> convertRemainder(vector<string> remV) {
-      string rem = "";
-      for (int i=1; i<remV.size(); i++) {
-         rem+=remV[i];
-      }
+      string rem = getRemainderFromVectorPosition(remV, 1);
       
       int curi = 0;
       vector<string> sepByCommas = vector<string>();

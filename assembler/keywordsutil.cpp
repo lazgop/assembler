@@ -190,3 +190,11 @@ int getExpressionValue(string expr) {
    
    return 0;
 }
+
+string getRemainderFromVectorPosition(vector<string> vec, int pos) {
+   string rem = "";
+   for (int i=pos; i<vec.size(); i++) {
+      rem+=vec[i];
+   }
+   return rem;
+}

@@ -19,5 +19,6 @@ bool isRegister(string word);
 bool isConstantExpression(string word);
 int getExpressionValue(string expr);
 bool isCalculatableExpression(string expr);
+string getRemainderFromVectorPosition(vector<string>, int);
 
 #endif /* keywordsutil_h */

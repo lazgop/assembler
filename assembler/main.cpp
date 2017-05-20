@@ -26,10 +26,22 @@ void assemblerFistPass(list<InputLine> *inputFile) {
    int locationCounter = 0;
    int addressCounter = 0;
    int lastSectionIndex = -1;
+   bool lastDirectiveORG = false;
+   int lastDirectiveORGAdress = -1;
    
    for (list<InputLine>::iterator iterator = inputFile->begin(); iterator != inputFile->end(); iterator++) {
       //find symbol or section and increment locationCounter
       string word = iterator->words[0];
+      if (lastDirectiveORG) {
+         if (isSection(word) && (lastDirectiveORGAdress >= addressCounter)) {
+            addressCounter = lastDirectiveORGAdress;
+            lastDirectiveORG = false;
+         } else {
+            cout << "Error: No section after ORG directive or ORG address less than current address!" << endl;
+            throw exception();
+         }
+      }
+      
       if (isSection(word)) {
          if (SymbolTable::contains(word)){
             cout << "Section redeclaration error for Section: " << word << endl;
@@ -40,7 +52,6 @@ void assemblerFistPass(list<InputLine> *inputFile) {
          entry.numID = (int)SymbolTable::entries.size();
          entry.name = word;
          entry.sectionID = entry.numID;
-         addressCounter += locationCounter;
          entry.addr = addressCounter;
          // TODO: Other fields
          
@@ -83,13 +94,20 @@ void assemblerFistPass(list<InputLine> *inputFile) {
          Instruction ins = Instruction(curWords);
          if (!(ins.getType().compare("NONE") == 0)) {
             locationCounter+=ins.getSize();
+            addressCounter += ins.getSize();
             continue;
          }
          
          // TODO: Directive
          Directive dir = Directive(curWords);
          if (!(dir.getType().compare("NONE") == 0)) {
-            locationCounter += dir.getSize();
+            if (dir.getType().compare("ORG") == 0) {
+               lastDirectiveORG = true;
+               lastDirectiveORGAdress = dir.getSize();
+            } else {
+               locationCounter += dir.getSize();
+               addressCounter += dir.getSize();
+            }
             continue;
          }
       }

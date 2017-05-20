@@ -3,7 +3,8 @@
 a: DD a, 2 DUP 234243+123
 c DEF f
 f DEF 2
-ORG 0x20
+
+ORG 20
 
 .text.12
 
