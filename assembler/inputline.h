@@ -25,13 +25,21 @@ public:
       do {
          string sub;
          iss >> sub;
-
+         
+         bool commentFound = false;
+         if (sub.find(";") != string::npos) {
+            sub = sub.substr(0, sub.find(";"));
+            commentFound = true;
+         }
+         
          if (!(sub.compare("") == 0)) {
             words.push_back(sub);
-//            cout << "Substring: " << sub << endl;
+         }
+         
+         if (commentFound) {
+            break;
          }
       } while (iss);
-//      cout << endl;
    }
 };
 
