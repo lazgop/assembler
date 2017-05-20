@@ -14,11 +14,13 @@ using namespace std;
 bool isInteger(const std::string & s);
 bool isSection(string word);
 bool isLabel(string word);
+bool isValidString(string word);
 bool isDirective(string word);
 bool isRegister(string word);
 bool isConstantExpression(string word);
 int getExpressionValue(string expr);
 bool isCalculatableExpression(string expr);
 string getRemainderFromVectorPosition(vector<string>, int);
+void printHexaFromChar(char);
 
 #endif /* keywordsutil_h */

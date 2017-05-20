@@ -18,6 +18,9 @@
 #include "symboltableentry.h"
 #include "usymboltable.h"
 #include "usymboltableentry.h"
+#include "relocationtable.cpp"
+#include "relocationtable.cpp"
+#include "sections.hpp"
 
 using namespace std;
 
@@ -51,7 +54,7 @@ public:
                   constSize = 4;
                   break;
             }
-            vector<string> rem = convertRemainder(text);
+            vector<string> rem = convertRemainderFromPos(text, 1);
             size = constSize * (int)rem.size();
             break;
          }
@@ -143,6 +146,136 @@ public:
       }
    }
    
+   Directive(vector<string> text, int locationCounter) {
+      switch(getType(text[0], text[1])){
+         case 0: {// data defining direcive
+            switch (getDDDType(text[0])) {
+               case 0: // "DB"
+                  type = "DB";
+                  constSize = 1;
+                  break;
+               case 1: // "DW"
+                  type = "DW";
+                  constSize = 2;
+                  break;
+               case 2: // "DD"
+                  type = "DD";
+                  constSize = 4;
+                  break;
+            }
+            vector<string> rem = convertRemainderFromPos(text, 1);
+            size = constSize * (int)rem.size();
+            for (int i = 0; i < rem.size(); i++) {
+               int val = 0;
+               bool foundLabel = false;
+               for (int j = 0; j < SymbolTable::entries.size(); j++) {
+                  if (SymbolTable::entries[j].name.compare(rem[i]) == 0) {
+                     if (SymbolTable::entries[j].sectionID == -1) {
+                        val = SymbolTable::entries[j].addr;
+                     } else {
+                        RelocationTableEntry rte = RelocationTableEntry();
+                        rte.numID = SymbolTable::entries[j].numID;
+                        rte.address = locationCounter + i * constSize;
+                        rte.type = "R";
+                        Sections::entries[Sections::entries.size() - 1].relTable.entries.push_back(rte);
+                        val = 0;
+                        
+                     }
+                     foundLabel = true;
+                     break;
+                  }
+               }
+               
+               if (!foundLabel && isValidString(rem[i])) {
+                  
+                  SymbolTableEntry entry = SymbolTableEntry();
+                  entry.type = "SYM";
+                  entry.numID = (int)SymbolTable::entries.size();
+                  entry.name = rem[i];
+                  entry.flags = "?";
+                  entry.sectionID = -1;
+                  entry.addr = -1;
+                  SymbolTable::pushBack(entry);
+                  
+                  RelocationTableEntry rte = RelocationTableEntry();
+                  rte.numID = entry.numID;
+                  rte.address = locationCounter + i * constSize;
+                  rte.type = "A";
+                  Sections::entries[Sections::entries.size() - 1].relTable.entries.push_back(rte);
+                  val = 0;
+               } else {
+                  val = getExpressionValue(rem[i]);
+               }
+               
+               for (int k=0; k < constSize; k++) {
+                  Sections::entries[Sections::entries.size() - 1].content.push_back(char(val));
+                  val = val >> 8;
+               }
+            }
+            break;
+         }
+         case 1: // regular Directive
+            switch (getRDType(text[0])) {
+               case 0: {// ".global"
+                  type = ".global";
+                  vector<string> rem = convertRemainderFromPos(text, 1);
+                  bool foundLabel = false;
+                  for (int i=0; i < rem.size(); i++) {
+                     for (int j = 0; j < SymbolTable::entries.size(); j++) {
+                        if (SymbolTable::entries[j].name.compare(rem[i]) == 0) {
+                           SymbolTable::entries[j].flags = "G";
+                           foundLabel = true;
+                           break;
+                        }
+                     }
+                     
+                     if (!foundLabel) {
+                        SymbolTableEntry entry = SymbolTableEntry();
+                        entry.type = "SYM";
+                        entry.numID = (int)SymbolTable::entries.size();
+                        entry.name = rem[i];
+                        entry.flags = "G";
+                        entry.sectionID = -1;
+                        entry.addr = -1;
+                        SymbolTable::pushBack(entry);
+                     }
+                  }
+                  size = 0;
+                  break;
+               }
+               case 1: {// "ORG"
+                  type = "ORG";
+                  string rem = getRemainderFromVectorPosition(text, 1);
+                  if (isConstantExpression(rem)) {
+                     if (isCalculatableExpression(rem)) {
+                        size = getExpressionValue(rem);
+                     } else {
+                        cout << "Error: Const expression in ORG directive is not calculatable!" << endl;
+                        throw exception();
+                     }
+                  } else {
+                     cout << "Error: Const expression in ORG directive is not valid expression!" << endl;
+                     throw exception();
+                  }
+                  break;
+               }
+               default:
+                  break;
+            }
+            break;
+         case 2:{ // other Directive
+            // "DEF"
+            type = "DEF";
+            size = 0;
+            //TODO
+            break;
+         }
+         default:
+            type = "NONE";
+            break;
+      }
+   }
+   
    
    int getSize() {
       return size;
@@ -191,8 +324,8 @@ public:
       return -1;
    }
    
-   vector<string> convertRemainder(vector<string> remV) {
-      string rem = getRemainderFromVectorPosition(remV, 1);
+   vector<string> convertRemainderFromPos(vector<string> remV, int pos) {
+      string rem = getRemainderFromVectorPosition(remV, pos);
       
       int curi = 0;
       vector<string> sepByCommas = vector<string>();

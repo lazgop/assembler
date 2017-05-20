@@ -74,6 +74,35 @@ bool isLabel(string word) {
    return true;
 }
 
+bool isValidString(string word) {
+   if ((word[0] < 'a' || word[0] > 'z') && (word[0] < 'A' || word[0] > 'Z')){
+      return false;
+   }
+   for (int i=1; i < word.length() - 1; i++) {
+      if ((word[i] < 'a' || word[i] > 'z') && (word[i] < 'A' || word[i] > 'Z') && (word[i] < '0' || word[i] > '9')){
+         return false;
+      }
+   }
+   return true;
+}
+
+void printHexaFromChar(char c) {
+   
+   int maskedVal = c >> 4;
+   if (maskedVal >= 0 && maskedVal <=9) {
+      cout << maskedVal;
+   } else {
+      cout << char(maskedVal + 55);
+   }
+   
+   maskedVal = 0x0F & c;
+   if (maskedVal >= 0 && maskedVal <=9) {
+       cout << maskedVal;
+   } else {
+       cout << char(maskedVal + 55);
+   }  
+}
+
 bool isDirective(string word){
    return false;
 }

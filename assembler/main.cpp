@@ -18,6 +18,8 @@
 #include "symboltableentry.h"
 #include "instructions.h"
 #include "directives.h"
+#include "section.hpp"
+#include "sections.hpp"
 
 using namespace std;
 
@@ -116,6 +118,62 @@ void assemblerFistPass(list<InputLine> *inputFile) {
    locationCounter = 0;
 }
 
+void assemblerSecondPass(list<InputLine> *inputFile) {
+   int locationCounter = 0;
+   int addressCounter = 0;
+   int lastSectionIndex = -1;
+   bool lastDirectiveORG = false;
+   int lastDirectiveORGAdress = -1;
+   
+   for (list<InputLine>::iterator iterator = inputFile->begin(); iterator != inputFile->end(); iterator++) {
+      //find symbol or section and increment locationCounter
+      string word = iterator->words[0];
+      
+      if (isSection(word)) {
+         Section section = Section(word);
+         Sections::entries.push_back(section);
+         locationCounter = 0;
+      } else {
+         vector<string> curWords = iterator->words;
+         if (isLabel(word)) {
+            curWords = vector<string>();
+            for (int i = 1; i < iterator->words.size(); i++) {
+               curWords.push_back(iterator->words[i]);
+            }
+         }
+         
+//         Instruction ins = Instruction(curWords);
+//         if (!(ins.getType().compare("NONE") == 0)) {
+//            locationCounter+=ins.getSize();
+//            addressCounter += ins.getSize();
+//            continue;
+//         }
+         
+         Directive dir = Directive(curWords, locationCounter);
+         if (!(dir.getType().compare("NONE") == 0)) {
+            if (dir.getType().compare("ORG") == 0) {
+               lastDirectiveORG = true;
+               lastDirectiveORGAdress = dir.getSize();
+            } else {
+               locationCounter += dir.getSize();
+               addressCounter += dir.getSize();
+            }
+            continue;
+         }
+      }
+   }
+   
+   if (USymbolTable::entries.size() > 0) {
+      cout << "Error: Uncalculatable symbols in USTable found!" << endl;
+      throw exception();
+   }
+   
+   if (lastSectionIndex != -1) {
+      SymbolTable::entries[lastSectionIndex].size = locationCounter;
+   }
+   locationCounter = 0;
+}
+
 int main(int argc, const char * argv[]) {
    if (argc < 3) {
       Error::handleArgvError();
@@ -126,13 +184,26 @@ int main(int argc, const char * argv[]) {
    
    try {
       assemblerFistPass(inputFile);
-      SymbolTable::outputSymbolTable();
    }catch(exception e) {
       // TODO: Handle
       return 1;
    }
 
+   try {
+      assemblerSecondPass(inputFile);
+      SymbolTable::outputSymbolTable();
+      Sections::outputSections();
+   }catch(exception e) {
+      // TODO: Handle
+      return 2;
+   }
    
+   for (int i=0; i < SymbolTable::entries.size(); i++) {
+      if (SymbolTable::entries[i].flags == "?") {
+         cout << "Error: Undefined symbol " << SymbolTable::entries[i].name << endl;
+         return 2;
+      }
+   }
    
    return 0;
 }
