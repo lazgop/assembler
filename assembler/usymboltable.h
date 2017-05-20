@@ -19,6 +19,8 @@ using namespace std;
 class USymbolTable {
 public:
    static vector<USymbolTableEntry> entries;
+   static bool contains(string name);
+   static void pushBack(USymbolTableEntry);
 };
 
 #endif /* usymboltable_hpp */

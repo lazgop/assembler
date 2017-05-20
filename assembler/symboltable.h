@@ -18,7 +18,9 @@ class SymbolTable{
 public:
    static vector<SymbolTableEntry> entries;
    static bool contains(string name);
+   static void pushBack(SymbolTableEntry);
    
    static void outputSymbolTable();
+   
 };
 #endif /* symboltable_h */

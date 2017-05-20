@@ -43,10 +43,6 @@ void assemblerFistPass(list<InputLine> *inputFile) {
       }
       
       if (isSection(word)) {
-         if (SymbolTable::contains(word)){
-            cout << "Section redeclaration error for Section: " << word << endl;
-            throw exception();
-         }
          SymbolTableEntry entry = SymbolTableEntry();
          entry.type = "SEG";
          entry.numID = (int)SymbolTable::entries.size();
@@ -61,16 +57,12 @@ void assemblerFistPass(list<InputLine> *inputFile) {
          
          locationCounter = 0;
          
-         SymbolTable::entries.push_back(entry);
+         SymbolTable::pushBack(entry);
          lastSectionIndex = (int)SymbolTable::entries.size() - 1;
       } else {
          vector<string> curWords = iterator->words;
          if (isLabel(word)) {
             word = word.substr(0, word.length() - 1);
-            if (SymbolTable::contains(word)){
-               cout << "Label redeclaration error for label: " << word << endl;
-               throw exception();
-            }
             SymbolTableEntry entry = SymbolTableEntry();
             entry.type = "SYM";
             entry.numID = (int)SymbolTable::entries.size();
@@ -80,7 +72,7 @@ void assemblerFistPass(list<InputLine> *inputFile) {
             entry.addr = locationCounter;
             
             // TODO: Other fields
-            SymbolTable::entries.push_back(entry);
+            SymbolTable::pushBack(entry);
             if (!(iterator->words.size() > 1)) {
                continue;
             }
@@ -111,7 +103,11 @@ void assemblerFistPass(list<InputLine> *inputFile) {
             continue;
          }
       }
-      //inc lc
+   }
+   
+   if (USymbolTable::entries.size() > 0) {
+      cout << "Error: Uncalculatable symbols in USTable found!" << endl;
+      throw exception();
    }
    
    if (lastSectionIndex != -1) {
@@ -125,9 +121,6 @@ int main(int argc, const char * argv[]) {
       Error::handleArgvError();
       return 1;
    }
-   
-//   isConstantExpression("25+( smilja*11 - (24)) / gs4 + 'c' + 0x123");
-//   cout << isInteger("FF2");
    
    list<InputLine> *inputFile = FileManager::readInputFile(argv[1]);
    

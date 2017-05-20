@@ -45,3 +45,11 @@ void SymbolTable::outputSymbolTable() {
    }
 }
 
+void SymbolTable::pushBack(SymbolTableEntry ste) {
+   if (SymbolTable::contains(ste.name)) {
+      cout << "Error: Symbol redeclaration error for symbol: " << ste.name << endl;
+      throw exception();
+   }
+   SymbolTable::entries.push_back(ste);
+}
+

@@ -95,7 +95,7 @@ public:
                   entry.flags = "ABS";
                   entry.sectionID = -1;
                   entry.addr = val;
-                  SymbolTable::entries.push_back(entry);
+                  SymbolTable::pushBack(entry);
                   
                   bool calculatedSymbolInThisPass = false;
                   do {
@@ -110,7 +110,7 @@ public:
                            entry.flags = "ABS";
                            entry.sectionID = -1;
                            entry.addr = val;
-                           SymbolTable::entries.push_back(entry);
+                           SymbolTable::pushBack(entry);
                            calculatedSymbolInThisPass = true;
                            USymbolTable::entries[i].name = "-1";
                         }
@@ -128,7 +128,7 @@ public:
                   USymbolTableEntry uste = USymbolTableEntry();
                   uste.name = text[0];
                   uste.expression = rem;
-                  USymbolTable::entries.push_back(uste);
+                  USymbolTable::pushBack(uste);
                }
             } else {
                throw exception();
