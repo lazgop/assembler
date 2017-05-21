@@ -22,5 +22,5 @@ int getExpressionValue(string expr);
 bool isCalculatableExpression(string expr);
 string getRemainderFromVectorPosition(vector<string>, int);
 void printHexaFromChar(char);
-
+int getRegNum(string word);
 #endif /* keywordsutil_h */

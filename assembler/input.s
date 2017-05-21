@@ -4,6 +4,7 @@ c DEF 65
 f DEF 2
 
 a: DD 2 DUP 234243+123, a, c, printf
+.global printf
 ORG 20
 
 .text.12
