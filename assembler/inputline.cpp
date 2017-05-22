@@ -42,7 +42,7 @@ string InputLine::getFirstOperand(string line) {
       word += c;
    }
    int spaces = 0;
-   for (int i = (int)(word.length() - 1); i>=0; i++) {
+   for (int i = (int)(word.length() - 1); i>=0; i--) {
       if (word.substr(i, 1) == " ") {
          spaces++;
          continue;
@@ -74,7 +74,7 @@ string InputLine::getNextOperandAfter(string op, string line) {
       word += c;
    }
    int spaces = 0;
-   for (int i = (int)(word.length() - 1); i>=0; i++) {
+   for (int i = (int)(word.length() - 1); i>=0; i--) {
       if (word.substr(i, 1) == " ") {
          spaces++;
          continue;
@@ -83,6 +83,19 @@ string InputLine::getNextOperandAfter(string op, string line) {
    }
    word = word.substr(0, word.length() - spaces);
    return word;
+}
+
+vector<string> InputLine::splitOperands(string line) {
+   vector<string> operands = vector<string>();
+   
+   string curOperand = InputLine::getFirstOperand(line);
+   
+   while (curOperand != "") {
+      operands.push_back(curOperand);
+      curOperand = InputLine::getNextOperandAfter(curOperand, line);
+   }
+   
+   return operands;
 }
 
 string InputLine::getNextWordAfter(string word, string line) {
@@ -120,7 +133,7 @@ string InputLine::getRemainingStringAfter(string word, string line) {
    }
    
    int spaces = 0;
-   for (int i = (int)(remString.length() - 1); i>=0; i++) {
+   for (int i = (int)(remString.length() - 1); i>=0; i--) {
       if (remString.substr(i, 1) == " ") {
          spaces++;
          continue;

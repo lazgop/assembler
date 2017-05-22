@@ -23,4 +23,5 @@ bool isCalculatableExpression(string expr);
 string getRemainderFromVectorPosition(vector<string>, int);
 void printHexaFromChar(char);
 int getRegNum(string word);
+string trimSpaces(string);
 #endif /* keywordsutil_h */

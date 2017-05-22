@@ -21,6 +21,7 @@
 #include "relocationtable.cpp"
 #include "relocationtable.cpp"
 #include "sections.hpp"
+#include "inputline.h"
 
 using namespace std;
 
@@ -37,10 +38,13 @@ class Directive{
    int size;
    
 public:
-   Directive(vector<string> text){
-      switch(getType(text[0], text[1])){
+   Directive(string keyWord, string afterKeyword){
+      
+      // Needed for DUP command
+      string secondWord = InputLine::getFirstWord(afterKeyword);
+      switch(getType(keyWord, secondWord)){
          case 0: {// data defining direcive
-            switch (getDDDType(text[0])) {
+            switch (getDDDType(keyWord)) {
                case 0: // "DB"
                   type = "DB";
                   constSize = 1;
@@ -54,22 +58,21 @@ public:
                   constSize = 4;
                   break;
             }
-            vector<string> rem = convertRemainderFromPos(text, 1);
+            vector<string> rem = convertRemainderWithDUP(afterKeyword);
             size = constSize * (int)rem.size();
             break;
          }
          case 1: // regular Directive
-            switch (getRDType(text[0])) {
+            switch (getRDType(keyWord)) {
                case 0: // ".global"
                   type = ".global";
                   size = 0;
                   break;
                case 1: {// "ORG"
                   type = "ORG";
-                  string rem = getRemainderFromVectorPosition(text, 1);
-                  if (isConstantExpression(rem)) {
-                     if (isCalculatableExpression(rem)) {
-                        size = getExpressionValue(rem);
+                  if (isConstantExpression(afterKeyword)) {
+                     if (isCalculatableExpression(afterKeyword)) {
+                        size = getExpressionValue(afterKeyword);
                      } else {
                         cout << "Error: Const expression in ORG directive is not calculatable!" << endl;
                         throw exception();
@@ -86,15 +89,19 @@ public:
             break;
          case 2:{ // other Directive
             // "DEF"
+            if (!isValidString(keyWord)) {
+               cout << "Error: Trying to define non string value!" << endl;
+               throw exception();
+            }
             type = "DEF";
-            string rem = getRemainderFromVectorPosition(text, 2);
+            string rem = InputLine::getRemainingStringAfter("DEF", afterKeyword);
             if (isConstantExpression(rem)) {
                if (isCalculatableExpression(rem)) {
                   int val = getExpressionValue(rem);
                   SymbolTableEntry entry = SymbolTableEntry();
                   entry.type = "SYM";
                   entry.numID = (int)SymbolTable::entries.size();
-                  entry.name = text[0];
+                  entry.name = keyWord;
                   entry.flags = "ABS";
                   entry.sectionID = -1;
                   entry.addr = val;
@@ -129,15 +136,15 @@ public:
                   USymbolTable::entries = tmpUSymbTbl;
                } else {
                   USymbolTableEntry uste = USymbolTableEntry();
-                  uste.name = text[0];
+                  uste.name = keyWord;
                   uste.expression = rem;
                   USymbolTable::pushBack(uste);
                }
             } else {
+               cout << "Error: Right of DEF is not a constant expression!" << endl;
                throw exception();
             }
             size = 0;
-            //TODO
             break;
          }
          default:
@@ -145,11 +152,21 @@ public:
             break;
       }
    }
+   // *******************************
+   // *******************************
+   // *******************************
+   // *******************************
+   // *******************************
+   // *******************************
+   // *******************************
    
-   Directive(vector<string> text, int locationCounter) {
-      switch(getType(text[0], text[1])){
+   // Second pass constructor
+   Directive(string keyWord, string afterKeyword, int locationCounter) {
+      // Needed for DUP command
+      string secondWord = InputLine::getFirstWord(afterKeyword);
+      switch(getType(keyWord, secondWord)){
          case 0: {// data defining direcive
-            switch (getDDDType(text[0])) {
+            switch (getDDDType(keyWord)) {
                case 0: // "DB"
                   type = "DB";
                   constSize = 1;
@@ -163,7 +180,7 @@ public:
                   constSize = 4;
                   break;
             }
-            vector<string> rem = convertRemainderFromPos(text, 1);
+            vector<string> rem = convertRemainderWithDUP(afterKeyword);
             size = constSize * (int)rem.size();
             for (int i = 0; i < rem.size(); i++) {
                int val = 0;
@@ -179,7 +196,6 @@ public:
                         rte.type = "R";
                         Sections::entries[Sections::entries.size() - 1].relTable.entries.push_back(rte);
                         val = 0;
-                        
                      }
                      foundLabel = true;
                      break;
@@ -187,7 +203,6 @@ public:
                }
                
                if (!foundLabel && isValidString(rem[i])) {
-                  
                   SymbolTableEntry entry = SymbolTableEntry();
                   entry.type = "SYM";
                   entry.numID = (int)SymbolTable::entries.size();
@@ -215,10 +230,10 @@ public:
             break;
          }
          case 1: // regular Directive
-            switch (getRDType(text[0])) {
+            switch (getRDType(keyWord)) {
                case 0: {// ".global"
                   type = ".global";
-                  vector<string> rem = convertRemainderFromPos(text, 1);
+                  vector<string> rem = InputLine::splitOperands(afterKeyword);
                   bool foundLabel = false;
                   for (int i=0; i < rem.size(); i++) {
                      for (int j = 0; j < SymbolTable::entries.size(); j++) {
@@ -245,7 +260,7 @@ public:
                }
                case 1: {// "ORG"
                   type = "ORG";
-                  string rem = getRemainderFromVectorPosition(text, 1);
+                  string rem = afterKeyword;
                   if (isConstantExpression(rem)) {
                      if (isCalculatableExpression(rem)) {
                         size = getExpressionValue(rem);
@@ -267,7 +282,6 @@ public:
             // "DEF"
             type = "DEF";
             size = 0;
-            //TODO
             break;
          }
          default:
@@ -340,6 +354,7 @@ public:
       }
       
       if (curi == rem.length()) {
+         cout << "Error: Double comma in expression!" << endl;
          throw exception();
       }
       
@@ -362,6 +377,36 @@ public:
       
       return convertedVector;
    }
+   
+   
+   // No commas
+   vector<string> convertRemainderWithDUP(string remainder) {
+      vector<string> sepByCommas = InputLine::splitOperands(remainder);
+      
+      vector<string> convertedVector = vector<string>();
+      for (int i=0; i < sepByCommas.size(); i++) {
+         if (sepByCommas[i].find("DUP") != string::npos) {
+            string leftOfDup = sepByCommas[i].substr(0, sepByCommas[i].find("DUP"));
+            string rightOfDup = sepByCommas[i].substr(sepByCommas[i].find("DUP") + 3, sepByCommas[i].length() - (sepByCommas[i].find("DUP") + 3));
+            
+            leftOfDup = trimSpaces(leftOfDup);
+            rightOfDup = trimSpaces(rightOfDup);
+            if (!isConstantExpression(leftOfDup)) {
+               cout << "Error: Left of DUP is not a constant expression!" << endl;
+               throw exception();
+            }
+            
+            int leftOfDupVal = getExpressionValue(leftOfDup);
+            for (int j=0; j < leftOfDupVal; j++) {
+               convertedVector.push_back(rightOfDup);
+            }
+         } else {
+            convertedVector.push_back(sepByCommas[i]);
+         }
+      }
+      return convertedVector;
+   }
+
 };
 
 #endif /* directives_h */

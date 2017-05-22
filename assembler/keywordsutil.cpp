@@ -90,15 +90,15 @@ bool isValidString(string word) {
 
 void printHexaFromChar(char c) {
    
-   int maskedVal = c >> 4;
-   if (maskedVal >= 0 && maskedVal <=9) {
+   unsigned int maskedVal = (c >> 4) & 0x0F;
+   if (maskedVal <=9) {
       cout << maskedVal;
    } else {
       cout << char(maskedVal + 55);
    }
    
    maskedVal = 0x0F & c;
-   if (maskedVal >= 0 && maskedVal <=9) {
+   if (maskedVal <=9) {
        cout << maskedVal;
    } else {
        cout << char(maskedVal + 55);
@@ -123,6 +123,7 @@ bool isRegister(string word){
 }
 
 bool isConstantExpression(string expression) {
+   // TODO: - FINISH CONSTANT EXPRESSION - BUG WITH [R1]
    vector<string> expressionParts = vector<string>();
    string currentPart = "";
    for (int i = 0; i < expression.length(); i++) {
@@ -239,4 +240,30 @@ int getRegNum(string word) {
       }
    }
    return -1;
+}
+
+string trimSpaces(string word) {
+   string trimmedString = "";
+   int spaces = 0;
+
+   for (int i=0; i < (int)word.length(); i++) {
+      if(word.substr(i,1) == " ") {
+         spaces++;
+         continue;
+      }
+      break;
+   }
+   trimmedString = word.substr(spaces, word.length() - spaces);
+   spaces = 0;
+   
+   for (int i= (int)(trimmedString.length() - 1); i>=0; i--) {
+      if (trimmedString.substr(i, 1) == " ") {
+         spaces++;
+         continue;
+      }
+      break;
+   }
+   trimmedString = trimmedString.substr(0, trimmedString.length() - spaces);
+   
+   return trimmedString;
 }

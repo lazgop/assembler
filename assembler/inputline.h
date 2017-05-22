@@ -111,6 +111,7 @@ public:
    
    static string getFirstOperand(string line);
    static string getNextOperandAfter(string op, string line);
+   static vector<string> splitOperands(string line);
 };
 
 #endif /* inputline_h */

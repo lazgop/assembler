@@ -93,9 +93,6 @@ public:
       if (isRegisterDirect(word)) {
          return 1;
       }
-      if (isMemoryDirect(word)) {
-         return 2;
-      }
       if (isRegisterIndirect(word)) {
          return 3;
       }
@@ -104,6 +101,9 @@ public:
       }
       if (isPCRelPom(word)) {
          return 5;
+      }
+      if (isMemoryDirect(word)) {
+         return 2;
       }
       return -1;
    }

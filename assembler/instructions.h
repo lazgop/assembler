@@ -252,7 +252,7 @@ public:
                      }
                      case 3: {// RegInd
                         int adrAndReg = 0b010;
-                        int reg0 = getRegNum(afterKeyword.substr(1, afterKeyword.length() - 2));
+                        int reg0 = getRegNum(op.substr(1, op.length() - 2));
                         adrAndReg = adrAndReg << 5;
                         adrAndReg += reg0;
                         instruction.push_back(adrAndReg);
@@ -328,7 +328,6 @@ public:
                   cout << "Unknown LS INSTRUCTION!" << endl;
                   throw exception();
             }
-            
             switch (Addressing::getType(op)) {
                case 0: {// Immed
                   if (lsInsType == 5 || lsInsType == 6 || lsInsType == 7) { // "STORE", "STOREB", "STOREW"
