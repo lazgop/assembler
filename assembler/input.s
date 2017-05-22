@@ -9,7 +9,7 @@ ORG 20
 
 .text.12
  .global a
- LOAD R1, a
+ LOAD R1, f
  LOAD R2, #a
  LOAD R3, [R4]
  x: JZ R6, [R5]

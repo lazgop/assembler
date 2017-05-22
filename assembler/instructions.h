@@ -548,7 +548,7 @@ public:
          bool labelFound = false;
          int labelLocation = -1;
          for (int i=0; i < SymbolTable::entries.size(); i++) {
-            if (word.compare(SymbolTable::entries[i].name)) {
+            if (word.compare(SymbolTable::entries[i].name) == 0) {
                labelLocation = i;
                labelFound = true;
                break;
@@ -566,7 +566,9 @@ public:
             SymbolTable::pushBack(ste);
             labelLocation = ste.numID;
          }
-         
+         if (SymbolTable::entries[labelLocation].flags == "ABS") {
+            return SymbolTable::entries[labelLocation].addr;
+         }
          RelocationTableEntry rte = RelocationTableEntry();
          rte.address = locationCounter;
          rte.numID = labelLocation;

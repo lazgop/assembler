@@ -18,8 +18,6 @@
 #include "symboltableentry.h"
 #include "usymboltable.h"
 #include "usymboltableentry.h"
-#include "relocationtable.cpp"
-#include "relocationtable.cpp"
 #include "sections.hpp"
 #include "inputline.h"
 
