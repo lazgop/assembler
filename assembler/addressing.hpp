@@ -27,12 +27,12 @@ public:
    
    static bool isRegisterIndirectWithOffset(string word) {
       if (word[0] == '[' && word[word.length() - 1] == ']') {
-         if (isRegister(word.substr(1, 2))) {
-            if (isConstantExpression(word.substr(3, word.length() - 4))) {
+         if (isRegister(word.substr(1, 3))) {
+            if (isConstantExpression(word.substr(4, word.length() - 5))) {
                return true;
             }
-         } else if (isRegister(word.substr(1, 3))) {
-            if (isConstantExpression(word.substr(4, word.length() - 5))) {
+         } else if (isRegister(word.substr(1, 2))) {
+            if (isConstantExpression(word.substr(3, word.length() - 4))) {
                return true;
             }
          }
@@ -72,8 +72,17 @@ public:
    static bool isImmediate(string word) {
       if (word[0] == '#' && isConstantExpression(word.substr(1, word.length() - 1))) {
          return true;
+      } else if (word[0] == '#' && isValidString(word.substr(1, word.length() - 1))) {
+         return true;
       }
       
+      return false;
+   }
+   
+   static bool isPCRelPom(string word) {
+      if (word[0] == '$' && isValidString(word.substr(1, word.length() - 1))) {
+         return true;
+      }
       return false;
    }
    
@@ -92,6 +101,9 @@ public:
       }
       if (isRegisterIndirectWithOffset(word)) {
          return 4;
+      }
+      if (isPCRelPom(word)) {
+         return 5;
       }
       return -1;
    }

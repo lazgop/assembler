@@ -45,12 +45,14 @@ bool isSection(string word) {
          string modifier = word.substr(sections[i].length(), word.length());
          if (modifier.length() > 0) {
             if (modifier[0] != '.') {
-               return false;
+               cout << "Error: Section keyword invalid name " << word << endl;
+               throw exception();
             }
             
             modifier = modifier.substr(1, modifier.length());
             if (!isInteger(modifier)) {
-               return false;
+               cout << "Error: Section keyword modifier not a number " << word << endl;
+               throw exception();
             }
          }
          return true;
