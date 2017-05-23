@@ -7,7 +7,7 @@
 //
 
 #include "inputline.h"
-
+#include <iostream>
 string InputLine::getFirstWord(string line) {
    string word = "";
    for (int i=0; i < line.length(); i++) {
@@ -88,11 +88,29 @@ string InputLine::getNextOperandAfter(string op, string line) {
 vector<string> InputLine::splitOperands(string line) {
    vector<string> operands = vector<string>();
    
-   string curOperand = InputLine::getFirstOperand(line);
+   string word = "";
+   for (int i=0; i < line.length(); i++) {
+      string c = line.substr(i, 1);
+      if (c == " " && word == "") {
+         continue;
+      }
+      if (c == ";") {
+         break;
+      }
+      if (c == ",") {
+         if (word == "") {
+            cout << "Error: Dangling comma!" << endl;
+            throw exception();
+         }
+         operands.push_back(word);
+         word = "";
+         continue;
+      }
+      word += c;
+   }
    
-   while (curOperand != "") {
-      operands.push_back(curOperand);
-      curOperand = InputLine::getNextOperandAfter(curOperand, line);
+   if (word != "") {
+      operands.push_back(word);
    }
    
    return operands;

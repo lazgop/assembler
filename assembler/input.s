@@ -3,9 +3,8 @@
 c DEF 65
 f DEF c
 
-a: DD 2 DUP 234243+123, a, c, printf
+a: DD 2 DUP 2 + c, a, c, printf
 .global printf
-ORG 20
 
 .text.12
  .global a

@@ -85,7 +85,7 @@ public:
                   break;
             }
             break;
-         case 2:{ // other Directive
+         case 2:{ // other Directives
             // "DEF"
             if (!isValidString(keyWord)) {
                cout << "Error: Trying to define non string value!" << endl;
@@ -379,16 +379,16 @@ public:
    
    // No commas
    vector<string> convertRemainderWithDUP(string remainder) {
+
       vector<string> sepByCommas = InputLine::splitOperands(remainder);
-      
       vector<string> convertedVector = vector<string>();
       for (int i=0; i < sepByCommas.size(); i++) {
          if (sepByCommas[i].find("DUP") != string::npos) {
             string leftOfDup = sepByCommas[i].substr(0, sepByCommas[i].find("DUP"));
             string rightOfDup = sepByCommas[i].substr(sepByCommas[i].find("DUP") + 3, sepByCommas[i].length() - (sepByCommas[i].find("DUP") + 3));
             
-            leftOfDup = trimSpaces(leftOfDup);
-            rightOfDup = trimSpaces(rightOfDup);
+            leftOfDup = trimSpacesFromStr(leftOfDup);
+            rightOfDup = trimSpacesFromStr(rightOfDup);
             if (!isConstantExpression(leftOfDup)) {
                cout << "Error: Left of DUP is not a constant expression!" << endl;
                throw exception();

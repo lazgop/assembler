@@ -33,6 +33,7 @@ void assemblerFistPass(list<InputLine> *inputFile) {
    
    for (list<InputLine>::iterator iterator = inputFile->begin(); iterator != inputFile->end(); iterator++) {
       //find symbol or section and increment locationCounter
+      
       string firstWord = iterator->getFirstWord();
       if (firstWord == ".end") {
          break;
@@ -113,6 +114,9 @@ void assemblerFistPass(list<InputLine> *inputFile) {
          }
          continue;
       }
+      
+      cout << "Error: Unknown line of code: " << endl;
+      throw exception();
    }
    
    if (USymbolTable::entries.size() > 0) {
@@ -201,17 +205,12 @@ int main(int argc, const char * argv[]) {
    
    try {
       assemblerFistPass(inputFile);
-   }catch(exception e) {
-      // TODO: Handle
+   } catch (exception e) {
       return 1;
    }
-   
    try {
       assemblerSecondPass(inputFile);
-      SymbolTable::outputSymbolTable();
-      Sections::outputSections();
    }catch(exception e) {
-      // TODO: Handle
       return 2;
    }
    
@@ -221,6 +220,9 @@ int main(int argc, const char * argv[]) {
          return 2;
       }
    }
+   
+   SymbolTable::outputSymbolTable();
+   Sections::outputSections();
    
    return 0;
 }

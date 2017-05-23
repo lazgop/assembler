@@ -11,7 +11,7 @@
 #include <vector>
 #include <iostream>
 #include "symboltable.h"
-
+#include "keywordsutil.h"
 using namespace std;
 
 string sections[] = {".text", ".data", ".rodata", ".bss"};
@@ -37,6 +37,49 @@ bool isHexDigit(char c) {
    }
    
    return false;
+}
+
+
+int getIntFromHex(string hex) {
+   int value = 0;
+   for (int i=0; i < hex.length(); i++) {
+      switch (hex[hex.length() - i - 1]) {
+         case '0': value += (16^i) * 0; break;
+         case '1': value += (16^i) * 1; break;
+         case '2': value += (16^i) * 2; break;
+         case '3': value += (16^i) * 3; break;
+         case '4': value += (16^i) * 4; break;
+         case '5': value += (16^i) * 5; break;
+         case '6': value += (16^i) * 6; break;
+         case '7': value += (16^i) * 7; break;
+         case '8': value += (16^i) * 8; break;
+         case '9': value += (16^i) * 9; break;
+         case 'a': case 'A': value += (16^i) * 10; break;
+         case 'b': case 'B': value += (16^i) * 11; break;
+         case 'c': case 'C': value += (16^i) * 12; break;
+         case 'd': case 'D': value += (16^i) * 13; break;
+         case 'e': case 'E': value += (16^i) * 14; break;
+         case 'f': case 'F': value += (16^i) * 15; break;
+         default:
+            cout << "Error: Unknown hex digit " << hex[hex.length() - i - 1] << endl;
+            throw exception();
+      }
+   }
+   return value;
+}
+
+int getIntFromBin(string bin) {
+   int value = 0;
+   for (int i=0; i < bin.length(); i++) {
+      switch (bin[bin.length() - i - 1]) {
+         case '0': value += (2^i) * 0; break;
+         case '1': value += (2^i) * 1; break;
+         default:
+            cout << "Error: Unknown bin digit " << bin[bin.length() - i - 1] << endl;
+            throw exception();
+      }
+   }
+   return value;
 }
 
 bool isSection(string word) {
@@ -122,6 +165,43 @@ bool isRegister(string word){
    return false;
 }
 
+vector<string> splitInfixExpression(string infix) {
+   vector<string> splitExpression = vector<string>();
+   
+   string operand = "";
+   for (int i=0; i<infix.length(); i++) {
+      string c = infix.substr(i,1);
+      
+      if (c == " " && operand == "") {
+         continue;
+      }
+      
+      if (c == " " && operand != "") {
+         splitExpression.push_back(operand);
+         operand = "";
+         continue;
+      }
+      
+      if (c == "(" || c == ")" || c == "+" || c == "-" || c == "/" || c == "*") {
+         if (operand != "") {
+            splitExpression.push_back(operand);
+            operand = "";
+         }
+         splitExpression.push_back(c);
+         continue;
+      }
+   
+      operand += c;
+   }
+   
+   if (operand != "") {
+      splitExpression.push_back(operand);
+      operand = "";
+   }
+   
+   return splitExpression;
+}
+
 bool isConstantExpression(string expression) {
    // TODO: - FINISH CONSTANT EXPRESSION - BUG WITH [R1]
    vector<string> expressionParts = vector<string>();
@@ -155,10 +235,6 @@ bool isConstantExpression(string expression) {
       currentPart = "";
    }
    
-//   for (int i=0; i<expressionParts.size(); i++) {
-//      cout << expressionParts[i] << endl;
-//   }
-   
    int openBracketsCounter = 0;
    for (int i=0; i<expressionParts.size(); i++) {
       if (expressionParts[i].substr(0,2) == "0x") {
@@ -175,7 +251,6 @@ bool isConstantExpression(string expression) {
                return false;
             }
          }
-         
          
       } else if (isInteger(expressionParts[i])) {
          
@@ -208,19 +283,220 @@ bool isCalculatableExpression(string expr) {
    return false;
 }
 
-int getExpressionValue(string expr) {
-   // TODO: Finish method
-   if (isInteger(expr)) {
-      return stoi(expr);
-   }
+int priority(string operat) {
+   if (operat == "*" || operat == "/")
+      return 1;
    
-   for(int i=0; i < SymbolTable::entries.size(); i++) {
-      if (SymbolTable::entries[i].name == expr) {
-         return SymbolTable::entries[i].addr;
+   if (operat == "+" || operat == "-")
+      return 2;
+
+   if (operat == "(")
+      return 3;
+
+   cout << "Error: Unknown operator in expression!" << " " << operat << endl;
+   throw exception();
+}
+
+
+vector<string> infixToPostfix (vector<string> expression) {
+   vector<string> operator_stack;
+   
+   vector<string> output;
+   
+   for (unsigned i = 0; i < expression.size(); i++) {
+      string curPart = expression[i];
+      if (curPart == "+" || curPart == "-" || curPart == "*" || curPart == "/") {
+         while (!operator_stack.empty()) {
+            if (!(priority(operator_stack[operator_stack.size() - 1]) <= priority(curPart))) {
+               break;
+            }
+            output.push_back(operator_stack[operator_stack.size() - 1]);
+            operator_stack.pop_back();
+         }
+         operator_stack.push_back(curPart);
+      } else if (curPart == "(") {
+         operator_stack.push_back(curPart);
+      } else if (curPart == ")") {
+         while (operator_stack[operator_stack.size() - 1] != "(") {
+            output.push_back(operator_stack[operator_stack.size() - 1]);
+            operator_stack.pop_back();
+         }
+         operator_stack.pop_back();
+      } else {
+         output.push_back(curPart);
       }
    }
    
-   return 0;
+   while (!operator_stack.empty()) {
+      output.push_back(operator_stack[operator_stack.size() - 1]);
+      operator_stack.pop_back();
+   }
+   
+   return output;
+}
+
+struct Value {
+   int value;
+   bool calculated;
+   string label;
+};
+
+int evalPostfix(vector<string> postfix) {
+   vector<Value> s = vector<Value>();
+   int i = 0;
+   string ch;
+   Value val = Value();
+   val.value = 0;
+   while (i < postfix.size()) {
+      ch = postfix[i];
+      if (ch != "+" && ch != "-" && ch != "*" && ch != "/") {
+         // we saw an operand
+         // push the digit onto stack
+         Value operand = Value();
+         if (ch.length() > 2 && ch.substr(0,2) == "0x") {
+            operand.calculated = true;
+            operand.value = getIntFromHex(ch.substr(2, ch.size() - 2));
+         } else if (ch.length() > 2 && ch.substr(0,2) == "0b") {
+            operand.calculated = true;
+            operand.value = getIntFromBin(ch.substr(2, ch.size() - 2));
+         } else if (isInteger(ch)){
+            operand.calculated = true;
+            operand.value = stoi(ch);
+         } else {
+            operand.calculated = false;
+            operand.label = ch;
+         }
+         s.push_back(operand);
+         
+      } else {
+         // we saw an operator
+         // pop off the top two operands from the
+         // stack and evalute them using the current
+         // operator
+         Value op1 = s[s.size() - 1];
+         s.pop_back();
+         
+         Value op2;
+         if (s.size() != 0) {
+            op2 = s[s.size() - 1];
+            s.pop_back();
+         } else {
+            op2 = Value();
+            op2.calculated = true;
+            op2.value = 0;
+         }
+         
+         int op1Section = -2;
+         // TODO: - check if both values are labels and if they are from same section
+         if (op1.calculated == false) {
+            for (int j=0; j < SymbolTable::entries.size(); j++){
+               if (SymbolTable::entries[j].name.compare(op1.label) == 0) {
+                  if (SymbolTable::entries[j].flags == "ABS") {
+                     op1Section = -1;
+                     op1.calculated = true;
+                     op1.value = SymbolTable::entries[j].addr;
+                     break;
+                  }
+                  op1Section = SymbolTable::entries[j].sectionID;
+                  op1.value = SymbolTable::entries[j].addr;
+                  break;
+               }
+            }
+            if (op1Section == -2) {
+               cout << "Error: Label " << op1.label << " not found in symbol table in expression" << endl;
+               throw exception();
+            }
+         }
+         
+         int op2Section = -2;
+         if (op2.calculated == false) {
+            for (int j=0; j < SymbolTable::entries.size(); j++){
+               if (SymbolTable::entries[j].name.compare(op2.label) == 0) {
+                  if (SymbolTable::entries[j].flags == "ABS") {
+                     op2Section = -1;
+                     op2.calculated = true;
+                     op2.value = SymbolTable::entries[j].addr;
+                     break;
+                  }
+                  op2Section = SymbolTable::entries[j].sectionID;
+                  op2.value = SymbolTable::entries[j].addr;
+                  break;
+               }
+            }
+            if (op2Section == -2) {
+               cout << "Error: Label " << op2.label << " not found in symbol table in expression" << endl;
+               throw exception();
+            }
+         }
+         
+         if (op1Section == op2Section && !op1.calculated && !op2.calculated) {
+            op1.calculated = true;
+            op2.calculated = true;
+         }
+         
+         if (!op1.calculated || !op2.calculated) {
+            cout << "Error: Cannot calculate expression : " << (op2.calculated ? to_string(op2.value) : op2.label) << " " << ch << " " << (op1.calculated ? to_string(op1.value) : op1.label) << endl;
+            throw exception();
+         }
+         
+         val = Value();
+         val.calculated = true;
+         
+         if (ch == "+") {
+            val.value = op2.value + op1.value;
+         } else if (ch == "-"){
+            val.value = op2.value - op1.value;
+         } else if (ch == "*") {
+            val.value = op2.value * op1.value;
+         } else if (ch == "/") {
+            val.value = op2.value / op1.value;
+         }
+         // push the value obtained after evaluating
+         // onto the stack
+         s.push_back(val);
+      }
+      i++;
+   }
+   
+   if (s.size() != 1) {
+      cout << "Error: Invalid Postfix expression!" << endl;
+      throw exception();
+   }
+   
+   Value op1 = s[s.size() - 1];
+   s.pop_back();
+
+   int op1Section = -2;
+   if (!op1.calculated) {
+      for (i=0; i < SymbolTable::entries.size(); i++){
+         if (SymbolTable::entries[i].name.compare(op1.label) == 0) {
+            if (SymbolTable::entries[i].flags == "ABS") {
+               op1Section = -1;
+               op1.calculated = true;
+               op1.value = SymbolTable::entries[i].addr;
+               break;
+            }
+            op1Section = SymbolTable::entries[i].sectionID;
+            op1.value = SymbolTable::entries[i].addr;
+            break;
+         }
+      }
+      if (op1Section == -2) {
+         cout << "Error: Label " << op1.label << " not found in symbol table in expression" << endl;
+         throw exception();
+      }
+   }
+   
+   return op1.value;
+}
+
+
+int getExpressionValue(string expr) {
+   expr = trimSpacesFromStr(expr);
+   vector<string> expression = splitInfixExpression(expr);
+   vector<string> exprPostfix = infixToPostfix(expression);
+   int value = evalPostfix(exprPostfix);
+   return value;
 }
 
 string getRemainderFromVectorPosition(vector<string> vec, int pos) {
@@ -242,7 +518,7 @@ int getRegNum(string word) {
    return -1;
 }
 
-string trimSpaces(string word) {
+string trimSpacesFromStr(string word) {
    string trimmedString = "";
    int spaces = 0;
 

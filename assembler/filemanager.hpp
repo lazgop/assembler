@@ -13,6 +13,7 @@
 #include <fstream>
 #include <list>
 
+#include "keywordsutil.h"
 #include "inputline.h"
 using namespace std;
 
@@ -29,6 +30,9 @@ public:
             if (line.compare(".end") == 0) {
                break;
             }
+            
+            line = trimSpacesFromStr(line);
+            
             if (line.compare("") == 0) {
                continue;
             }
@@ -37,7 +41,8 @@ public:
          inputFile.close();
          return linelist;
       } else {
-         // Throw error
+         cout << "ERROR: Could not open input file!" << endl;
+         throw exception();
       }
       return nullptr;
    }
