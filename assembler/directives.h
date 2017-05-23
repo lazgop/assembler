@@ -68,15 +68,10 @@ public:
                   break;
                case 1: {// "ORG"
                   type = "ORG";
-                  if (isConstantExpression(afterKeyword)) {
-                     if (isCalculatableExpression(afterKeyword)) {
-                        size = getExpressionValue(afterKeyword);
-                     } else {
-                        cout << "Error: Const expression in ORG directive is not calculatable!" << endl;
-                        throw exception();
-                     }
-                  } else {
-                     cout << "Error: Const expression in ORG directive is not valid expression!" << endl;
+                  try {
+                     size = getExpressionValue(afterKeyword);
+                  }catch(...) {
+                     cout << "Error: Could not calculate expression in ORG directive!" << endl;
                      throw exception();
                   }
                   break;
@@ -259,15 +254,10 @@ public:
                case 1: {// "ORG"
                   type = "ORG";
                   string rem = afterKeyword;
-                  if (isConstantExpression(rem)) {
-                     if (isCalculatableExpression(rem)) {
-                        size = getExpressionValue(rem);
-                     } else {
-                        cout << "Error: Const expression in ORG directive is not calculatable!" << endl;
-                        throw exception();
-                     }
-                  } else {
-                     cout << "Error: Const expression in ORG directive is not valid expression!" << endl;
+                  try {
+                     size = getExpressionValue(afterKeyword);
+                  }catch(...) {
+                     cout << "Error: Could not calculate expression in ORG directive!" << endl;
                      throw exception();
                   }
                   break;

@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <iostream>
+#include <cmath>
 #include "symboltable.h"
 #include "keywordsutil.h"
 using namespace std;
@@ -44,22 +45,28 @@ int getIntFromHex(string hex) {
    int value = 0;
    for (int i=0; i < hex.length(); i++) {
       switch (hex[hex.length() - i - 1]) {
-         case '0': value += (16^i) * 0; break;
-         case '1': value += (16^i) * 1; break;
-         case '2': value += (16^i) * 2; break;
-         case '3': value += (16^i) * 3; break;
-         case '4': value += (16^i) * 4; break;
-         case '5': value += (16^i) * 5; break;
-         case '6': value += (16^i) * 6; break;
-         case '7': value += (16^i) * 7; break;
-         case '8': value += (16^i) * 8; break;
-         case '9': value += (16^i) * 9; break;
-         case 'a': case 'A': value += (16^i) * 10; break;
-         case 'b': case 'B': value += (16^i) * 11; break;
-         case 'c': case 'C': value += (16^i) * 12; break;
-         case 'd': case 'D': value += (16^i) * 13; break;
-         case 'e': case 'E': value += (16^i) * 14; break;
-         case 'f': case 'F': value += (16^i) * 15; break;
+         case '0': value += pow(16,i) * 0; break;
+         case '1': value += pow(16,i) * 1; break;
+         case '2': value += pow(16,i) * 2; break;
+         case '3': value += pow(16,i) * 3; break;
+         case '4': value += pow(16,i) * 4; break;
+         case '5': value += pow(16,i) * 5; break;
+         case '6': value += pow(16,i) * 6; break;
+         case '7': value += pow(16,i) * 7; break;
+         case '8': value += pow(16,i) * 8; break;
+         case '9': value += pow(16,i) * 9; break;
+         case 'a':
+         case 'A': value += pow(16,i) * 10; break;
+         case 'b':
+         case 'B': value += pow(16,i) * 11; break;
+         case 'c':
+         case 'C': value += pow(16,i) * 12; break;
+         case 'd':
+         case 'D': value += pow(16,i) * 13; break;
+         case 'e':
+         case 'E': value += pow(16,i) * 14; break;
+         case 'f':
+         case 'F': value += pow(16,i) * 15; break;
          default:
             cout << "Error: Unknown hex digit " << hex[hex.length() - i - 1] << endl;
             throw exception();
@@ -72,8 +79,8 @@ int getIntFromBin(string bin) {
    int value = 0;
    for (int i=0; i < bin.length(); i++) {
       switch (bin[bin.length() - i - 1]) {
-         case '0': value += (2^i) * 0; break;
-         case '1': value += (2^i) * 1; break;
+         case '0': value += pow(2,i) * 0; break;
+         case '1': value += pow(2,i) * 1; break;
          default:
             cout << "Error: Unknown bin digit " << bin[bin.length() - i - 1] << endl;
             throw exception();
