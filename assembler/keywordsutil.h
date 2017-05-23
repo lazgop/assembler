@@ -23,6 +23,8 @@ bool isCalculatableExpression(string expr);
 string getRemainderFromVectorPosition(vector<string>, int);
 void printHexaFromChar(char);
 int getRegNum(string word);
+int getRegNumFromOp(string word);
+int getRegNumFromOp(string word, string *offset);
 string trimSpacesFromStr(string);
 vector<string> splitInfixExpression(string infix);
 #endif /* keywordsutil_h */

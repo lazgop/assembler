@@ -18,3 +18,11 @@ a: DD 2 DUP 2 + c, a, c, printf
 
 
 bla bla bla
+
+- uraditi $
+- naci sve instrukcije/direktive gde se moze pojaviti simbol i proveravati da li ima simbol/simbol +/- expr i obratiti te slucajeve
+- podesiti tako da svaka linija koda mora biti u odgovarajucoj sekciji (ne sme LOAD van text itd.)
+- srediti da .bss sekcija mora da bude prazna u outputu
+- shvatiti sta tacno ide u tabelu relokacija za sekciju
+- srediti izlaz da izgleda kao zahtevan
+- videti sta se desava sa flagovima za sekcije

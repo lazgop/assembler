@@ -507,6 +507,58 @@ string getRemainderFromVectorPosition(vector<string> vec, int pos) {
    return rem;
 }
 
+int getRegNumFromOp(string word) {
+   string regname = "";
+   if (isRegister(word)) {
+      regname = word;
+   } else if (word[0] == '[' && word[word.length() - 1] == ']') {
+      word = word.substr(1, word.length() - 2);
+      if (isRegister(word)) {
+         regname = word;
+      } else {
+         if (isRegister(word.substr(1, 3))) {
+            regname = word.substr(1,3);
+         } else {
+            regname = word.substr(1,2);
+         }
+      }
+   }
+   int regnum = getRegNum(regname);
+   if (regnum == -1) {
+      cout << "Error: " << regname << " is not a register" << endl;
+      throw exception();
+   }
+   return regnum;
+}
+
+
+int getRegNumFromOp(string word, string *offset) {
+   string regname = "";
+   if (isRegister(word)) {
+      regname = word;
+   } else if (word[0] == '[' && word[word.length() - 1] == ']') {
+      word = word.substr(1, word.length() - 2);
+      if (isRegister(word)) {
+         regname = word;
+      } else {
+         if (isRegister(word.substr(0, 3))) {
+            regname = word.substr(0,3);
+            *offset = word.substr(3, word.length() - 3);
+            
+         } else {
+            regname = word.substr(0,2);
+            *offset = word.substr(2, word.length() - 2);
+         }
+      }
+   }
+   int regnum = getRegNum(regname);
+   if (regnum == -1) {
+      cout << "Error: " << regname << " is not a register" << endl;
+      throw exception();
+   }
+   return regnum;
+}
+
 int getRegNum(string word) {
    string registerNames[] = {"R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10", "R11", "R12", "R13", "R14", "R15", "SP", "PC"};
    int registerNamesLength = 18;
@@ -517,6 +569,7 @@ int getRegNum(string word) {
    }
    return -1;
 }
+
 
 string trimSpacesFromStr(string word) {
    string trimmedString = "";

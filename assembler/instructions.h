@@ -41,34 +41,51 @@ class Instruction{
 public:
    vector<char> instruction;
    Instruction(string keyWord, string afterKeyword) {
+      vector<string> operands = InputLine::splitOperands(afterKeyword);
       switch (getType(keyWord)) {
          case 0: { // JMP
             type = "JMP";
             switch (getJumpType(keyWord)) {
                case 0: // "INT"
+                  if (operands.size() != 1) {
+                     cout << "Error: Mismatch number of operands for INT instruction!" << endl;
+                     throw exception();
+                  }
+                  if (!isRegister(operands[0])) {
+                     cout << "Error: INT instruction operand must be a register!" << endl;
+                     throw exception();
+                  }
                   size = 4;
                   break;
                case 1: case 2: // "JMP", "CALL"
-                  if (Addressing::isRegisterIndirect(afterKeyword)) {
+                  if (operands.size() != 1) {
+                     cout << "Error: Mismatch number of operands for JMP/CALL instruction!" << endl;
+                     throw exception();
+                  }
+                  if (Addressing::isRegisterIndirect(operands[0])) {
                      size = 4;
                   } else {
                      size = 8;
                   }
                   break;
                case 3: // "RET"
-                  size = 4;
-                  if (afterKeyword != "") {
-                     cout << "Error: Excess input for RET instruction!" << endl;
+                  if (operands.size() != 0) {
+                     cout << "Error: Mismatch number of operands for RET instruction!" << endl;
                      throw exception();
                   }
+                  size = 4;
                   break;
                case 4: case 5: case 6: case 7: case 8: case 9: {// "JZ", "JNZ", "JGZ", "JGEZ", "JLZ", "JLEZ"
-                  string reg1 = InputLine::getFirstOperand(afterKeyword);
-                  if (!isRegister(reg1)) {
-                     cout << "Error: Conditional jump first operand is not a register!" << endl;
+                  if (operands.size() != 2) {
+                     cout << "Error: Mismatch number of operands for Conditional Jump instruction!" << endl;
                      throw exception();
                   }
-                  string op = InputLine::getNextOperandAfter(reg1, afterKeyword);
+                  string reg1 = operands[0];
+                  if (!isRegister(reg1)) {
+                     cout << "Error: Conditional jump first operand must be a register!" << endl;
+                     throw exception();
+                  }
+                  string op = operands[1];
                   if (Addressing::isRegisterIndirect(op)) {
                      size = 4;
                   } else {
@@ -80,13 +97,25 @@ public:
             break;
          }
          case 1: { // LS
-            type = "LS";
-            string reg1 = InputLine::getFirstOperand(afterKeyword);
-            if (!isRegister(reg1)) {
-               cout << "Error: Load/Store instructions first operand is not a register!" << endl;
+            if (operands.size() != 2) {
+               cout << "Error: Mismatch number of operands for Load/Store instruction!" << endl;
                throw exception();
             }
-            string op = InputLine::getNextOperandAfter(reg1, afterKeyword);
+            type = "LS";
+            string reg1 = operands[0];
+            if (!isRegister(reg1)) {
+               cout << "Error: Load/Store instructions first operand must be a register!" << endl;
+               throw exception();
+            }
+            
+            int lsInsType = getLSType(keyWord);
+            
+            if (Addressing::isImmediate(operands[1]) && (lsInsType == 5 || lsInsType == 6 || lsInsType == 7)) { // "STORE", "STOREB", "STOREW"
+               cout << "Error: Cannot use immediate addressing in STORE instructions!" << endl;
+               throw exception();
+            }
+            
+            string op = operands[1];
             if (Addressing::isRegisterDirect(op)) {
                size = 4;
             } else if (Addressing::isRegisterIndirect(op)) {
@@ -97,11 +126,31 @@ public:
             break;
          }
          case 2: { // STACK
+            if (operands.size() != 1) {
+               cout << "Error: Mismatch number of operands for Stack instruction!" << endl;
+               throw exception();
+            }
+            string reg1 = operands[0];
+            if (!isRegister(reg1)) {
+               cout << "Error: Stack instructions first operand is not a register!" << endl;
+               throw exception();
+            }
             type = "STACK";
             size = 4;
             break;
          }
          case 3: { // AL
+            if (operands.size() != 3) {
+               cout << "Error: Mismatch number of operands for A/L instruction!" << endl;
+               throw exception();
+            }
+            string reg0 = operands[0];
+            string reg1 = operands[1];
+            string reg2 = operands[2];
+            if (!isRegister(reg1) || !isRegister(reg1) || !isRegister(reg2)) {
+               cout << "Error: A/L instruction operands must be registers" << endl;
+               throw exception();
+            }
             type = "AL";
             size = 4;
             break;
@@ -126,24 +175,17 @@ public:
    Instruction(string keyWord, string afterKeyword, int lc) {
       instruction = vector<char>();
       this->locationCounter = lc;
+      vector<string> operands = InputLine::splitOperands(afterKeyword);
       switch(getType(keyWord)){
          case 0: { // JMP
             type = "JMP";
             int jmpType = getJumpType(keyWord);
             switch (jmpType) {
                case 0: {// "INT"
+                  // Only register direct
                   size = 4;
                   instruction.push_back(0);
-                  string reg0name = InputLine::getFirstOperand(afterKeyword);
-                  if (!isRegister(reg0name)) {
-                     cout << "Error: INT instruction requires a register as its operand!" << endl;
-                     throw exception();
-                  }
-                  if (InputLine::checkIfSomethingBehindWord(reg0name, afterKeyword)) {
-                     cout << "Error: Excess input for INT instruction!" << endl;
-                     throw exception();
-                  }
-                  int reg0 = getRegNum(reg0name);
+                  int reg0 = getRegNumFromOp(operands[0]);
                   instruction.push_back(reg0);
                   instruction.push_back(0);
                   instruction.push_back(0);
@@ -152,13 +194,16 @@ public:
                }
                case 1: case 2: {// "JMP", "CALL"
                   instruction.push_back(jmpType + 1);
-                  switch (Addressing::getType(afterKeyword)) {
+                  switch (Addressing::getType(operands[0])) {
                      case 2:{ // MemDir
+                        size = 8;
+                        
                         instruction.push_back(0b11000000);
                         instruction.push_back(0);
                         instruction.push_back(0);
                         locationCounter += 4;
-                        int addr = getMemoryDirectAddress(afterKeyword);
+                        
+                        int addr = getMemoryDirectAddress(operands[0]);
                         for (int i = 0; i < 4; i++) {
                            int c = addr >> (8*(3-i));
                            instruction.push_back(char(c));
@@ -167,9 +212,10 @@ public:
                         break;
                      }
                      case 3: {// RegInd
+                        size = 4;
+                        
                         int adrAndReg = 0b010;
-                        string reg0name = afterKeyword.substr(1, afterKeyword.length() - 2);
-                        int reg0 = getRegNum(reg0name);
+                        int reg0 = getRegNumFromOp(operands[0]);
                         adrAndReg = adrAndReg << 5;
                         adrAndReg += reg0;
                         instruction.push_back(adrAndReg);
@@ -179,16 +225,13 @@ public:
                         break;
                      }
                      case 4:{ // RegIndPom
+                        size = 8;
+                        
                         int adrAndReg = 0b111;
+                        
                         string offsetString;
-                        int reg0;
-                        if (isRegister(afterKeyword.substr(1, 3))) {
-                           reg0 = getRegNum(afterKeyword.substr(1,3));
-                           offsetString = afterKeyword.substr(4, afterKeyword.length() - 5);
-                        } else {
-                           reg0 = getRegNum(afterKeyword.substr(1,2));
-                           offsetString = afterKeyword.substr(3, afterKeyword.length() - 4);
-                        }
+                        int reg0 = getRegNumFromOp(operands[0], &offsetString);
+                        
                         adrAndReg = adrAndReg << 5;
                         adrAndReg += reg0;
                         instruction.push_back(adrAndReg);
@@ -204,19 +247,13 @@ public:
                         break;
                      }
                      case 5: { //PCRelPom --- $
+                        size = 8;
                         // TODO: - Finish this case
                         break;
                      }
                      default:
-                        // This line will also execute if there are more instructions after op
                         cout << "Error: Unknown addressing in " + keyWord + " instruction!" << endl;
                         throw exception();
-                  }
-                  
-                  if (Addressing::isRegisterIndirect(afterKeyword)) {
-                     size = 4;
-                  } else {
-                     size = 8;
                   }
                   break;
                }
@@ -229,16 +266,11 @@ public:
                   break;
                case 4: case 5: case 6: case 7: case 8: case 9: {// "JZ", "JNZ", "JGZ", "JGEZ", "JLZ", "JLEZ"
                   instruction.push_back(jmpType);
-                  string reg1name = InputLine::getFirstOperand(afterKeyword);
-                  if (!isRegister(reg1name)) {
-                     cout << "Error: Conditional jump first operand is not a register!" << endl;
-                     throw exception();
-                  }
-                  int reg1 = getRegNum(reg1name);
-                  string op = InputLine::getNextOperandAfter(reg1name, afterKeyword);
-                  
+                  int reg1 = getRegNumFromOp(operands[0]);
+                  string op = operands[1];
                   switch (Addressing::getType(op)) {
                      case 2:{ // MemDir
+                        size = 8;
                         instruction.push_back(0b11000000);
                         instruction.push_back(reg1 << 3);
                         instruction.push_back(0);
@@ -252,8 +284,9 @@ public:
                         break;
                      }
                      case 3: {// RegInd
+                        size = 4;
                         int adrAndReg = 0b010;
-                        int reg0 = getRegNum(op.substr(1, op.length() - 2));
+                        int reg0 = getRegNumFromOp(op);
                         adrAndReg = adrAndReg << 5;
                         adrAndReg += reg0;
                         instruction.push_back(adrAndReg);
@@ -262,16 +295,10 @@ public:
                         break;
                      }
                      case 4:{ // RegIndPom
+                        size = 8;
                         int adrAndReg = 0b111;
-                        int reg0;
                         string offsetString;
-                        if (isRegister(afterKeyword.substr(1, 3))) {
-                           reg0 = getRegNum(afterKeyword.substr(1,3));
-                           offsetString = afterKeyword.substr(4, afterKeyword.length() - 5);
-                        } else {
-                           reg0 = getRegNum(afterKeyword.substr(1,2));
-                           offsetString = afterKeyword.substr(3, afterKeyword.length() - 4);
-                        }
+                        int reg0 = getRegNumFromOp(op, &offsetString);
                         adrAndReg = adrAndReg << 5;
                         adrAndReg += reg0;
                         instruction.push_back(adrAndReg);
@@ -287,17 +314,13 @@ public:
                         break;
                      }
                      case 5: { // PCRelPom -- $
+                        size = 8;
                         // TODO: - Finish this case
                         break;
                      }
                      default:
                         cout << "Error: Unknown addressing in " + keyWord + " instruction!" << endl;
                         throw exception();
-                  }
-                  if (Addressing::isRegisterIndirect(op)) {
-                     size = 4;
-                  } else {
-                     size = 8;
                   }
                   break;
                }
@@ -309,13 +332,6 @@ public:
          case 1: { // LS
             type = "LS";
             int lsInsType = getLSType(keyWord);
-            string reg1name = InputLine::getFirstOperand(afterKeyword);
-            if (!isRegister(reg1name)) {
-               cout << "Error: Load/Store first operand is not a register!" << endl;
-               throw exception();
-            }
-            int reg1 = getRegNum(reg1name);
-            string op = InputLine::getNextOperandAfter(reg1name, afterKeyword);
             switch (lsInsType) {
                case 0: case 1: case 2: case 3: case 4: { // "LOAD", "LOADUB", "LOADSB", "LOADUW", "LOADSW"
                   instruction.push_back(0x10);
@@ -329,12 +345,12 @@ public:
                   cout << "Unknown LS INSTRUCTION!" << endl;
                   throw exception();
             }
+            int reg1 = getRegNum(operands[0]);
+            string op = operands[1];
             switch (Addressing::getType(op)) {
                case 0: {// Immed
-                  if (lsInsType == 5 || lsInsType == 6 || lsInsType == 7) { // "STORE", "STOREB", "STOREW"
-                     cout << "Error: Cannot use immediate addressing in STORE instructions!" << endl;
-                     throw exception();
-                  }
+                  size = 8;
+                  
                   instruction.push_back(0b10000000);
                   instruction.push_back(reg1 << 3);
                   instruction.push_back(getLSTypeCode(lsInsType));
@@ -348,8 +364,10 @@ public:
                   break;
                }
                case 1: { // RegDir
+                  size = 4;
+                  
                   int adrAndReg = 0b000;
-                  int reg0 = getRegNum(op);
+                  int reg0 = getRegNumFromOp(op);
                   adrAndReg = adrAndReg << 5;
                   adrAndReg += reg0;
                   instruction.push_back(adrAndReg);
@@ -359,6 +377,8 @@ public:
                   break;
                }
                case 2:{ // MemDir
+                  size = 8;
+                  
                   instruction.push_back(0b11000000);
                   instruction.push_back(reg1 << 3);
                   instruction.push_back(getLSTypeCode(lsInsType));
@@ -372,8 +392,10 @@ public:
                   break;
                }
                case 3: {// RegInd
+                  size = 4;
+                  
                   int adrAndReg = 0b010;
-                  int reg0 = getRegNum(op.substr(1, op.length() - 2));
+                  int reg0 = getRegNumFromOp(op);
                   adrAndReg = adrAndReg << 5;
                   adrAndReg += reg0;
                   instruction.push_back(adrAndReg);
@@ -382,16 +404,11 @@ public:
                   break;
                }
                case 4:{ // RegIndPom
+                  size = 8;
+                  
                   int adrAndReg = 0b111;
-                  int reg0;
                   string offsetString;
-                  if (isRegister(op.substr(1, 3))) {
-                     reg0 = getRegNum(op.substr(1,3));
-                     offsetString = op.substr(4, op.length() - 5);
-                  } else {
-                     reg0 = getRegNum(op.substr(1,2));
-                     offsetString = op.substr(3, op.length() - 4);
-                  }
+                  int reg0 = getRegNumFromOp(op, &offsetString);
                   adrAndReg = adrAndReg << 5;
                   adrAndReg += reg0;
                   instruction.push_back(adrAndReg);
@@ -406,55 +423,40 @@ public:
                   locationCounter += 4;
                   break;
                }
+               case 5: { // PCRELPOM $
+                  size = 8;
+                  //  TODO: - Finish this case
+                  break;
+               }
                default:
                   break;
-            }
-            
-            if (Addressing::isRegisterDirect(op) || Addressing::isRegisterIndirect(op)) {
-               size = 4;
-            } else {
-               size = 8;
             }
             break;
          }
          case 2: { // STACK
-            type = "STACK";
             size = 4;
+            
+            type = "STACK";
             if (keyWord == "PUSH") {
                instruction.push_back(0x20);
             } else {
                instruction.push_back(0x21);
             }
-            string op = afterKeyword;
-            if (!isRegister(op)) {
-               cout << "Error: Calling stack instructions with unresolved register!" << endl;
-               throw exception();
-            }
-            instruction.push_back(getRegNum(op));
+            instruction.push_back(getRegNumFromOp(operands[0]));
             instruction.push_back(0);
             locationCounter += 4;
             break;
          }
          case 3: { // AL
-            type = "AL";
             size = 4;
+            
+            type = "AL";
             int alInsType = getALType(keyWord);
             instruction.push_back(0x30 | alInsType);
-            string reg0name = InputLine::getFirstOperand(afterKeyword);
-            string reg1name = InputLine::getNextOperandAfter(reg0name, afterKeyword);
-            string reg2name = InputLine::getNextOperandAfter(reg1name, afterKeyword);
-            if (InputLine::checkIfSomethingBehindWord(reg2name, afterKeyword)) {
-               cout << "Error: Excess input for Arithmetic/Logic instructions!" << endl;
-               throw exception();
-            }
-            if (!isRegister(reg0name) || !isRegister(reg1name) || !isRegister(reg2name)) {
-               cout << "Error: Calling arithmetic instructions with unresolved register!" << endl;
-               throw exception();
-            }
-            
-            int reg0 = getRegNum(reg0name);
-            int reg1 = getRegNum(reg1name);
-            int reg2 = getRegNum(reg2name);
+         
+            int reg0 = getRegNum(operands[0]);
+            int reg1 = getRegNum(operands[1]);
+            int reg2 = getRegNum(operands[2]);
             
             int insRem = 0b000;
             insRem = (insRem << 8) + reg0;
