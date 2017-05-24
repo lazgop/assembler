@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7B4187111ED4B8E300182435 /* addressing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B4187101ED4B8E300182435 /* addressing.cpp */; };
 		7B6C73991ECDF1EA00243D2D /* instructions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B6C73971ECDF1EA00243D2D /* instructions.cpp */; };
 		7B6C739B1ECE10C500243D2D /* keywordsutil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B6C739A1ECE10C500243D2D /* keywordsutil.cpp */; };
 		7B85D3B31ECF04A7000891C8 /* directives.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B85D3B11ECF04A7000891C8 /* directives.cpp */; };
@@ -35,6 +36,7 @@
 		7B19D8C31ECDA88A00F5036E /* inputline.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = inputline.h; sourceTree = "<group>"; };
 		7B19D8C41ECDB4AD00F5036E /* symboltable.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = symboltable.h; sourceTree = "<group>"; };
 		7B19D8C51ECDB8B300F5036E /* symboltableentry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = symboltableentry.h; sourceTree = "<group>"; };
+		7B4187101ED4B8E300182435 /* addressing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = addressing.cpp; sourceTree = "<group>"; };
 		7B6C73961ECDC6C300243D2D /* keywordsutil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = keywordsutil.h; sourceTree = "<group>"; };
 		7B6C73971ECDF1EA00243D2D /* instructions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = instructions.cpp; sourceTree = "<group>"; };
 		7B6C73981ECDF1EA00243D2D /* instructions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = instructions.h; sourceTree = "<group>"; };
@@ -89,8 +91,8 @@
 			isa = PBXGroup;
 			children = (
 				7BDF6DBB1ECC931800A412F5 /* main.cpp */,
-				7BDF6DC51ECC959100A412F5 /* error.cpp */,
 				7BDF6DC61ECC959100A412F5 /* error.hpp */,
+				7BDF6DC51ECC959100A412F5 /* error.cpp */,
 				7B19D8C11ECDA64700F5036E /* filemanager.hpp */,
 				7B19D8C31ECDA88A00F5036E /* inputline.h */,
 				7BA3C8001ED32475009D2CDD /* inputline.cpp */,
@@ -99,18 +101,19 @@
 				7B19D8C51ECDB8B300F5036E /* symboltableentry.h */,
 				7B6C73961ECDC6C300243D2D /* keywordsutil.h */,
 				7B6C739A1ECE10C500243D2D /* keywordsutil.cpp */,
-				7B85D3B11ECF04A7000891C8 /* directives.cpp */,
 				7B85D3B21ECF04A7000891C8 /* directives.h */,
-				7B6C73971ECDF1EA00243D2D /* instructions.cpp */,
+				7B85D3B11ECF04A7000891C8 /* directives.cpp */,
 				7B6C73981ECDF1EA00243D2D /* instructions.h */,
+				7B6C73971ECDF1EA00243D2D /* instructions.cpp */,
 				7B85D3B51ECF08BA000891C8 /* addressing.hpp */,
+				7B4187101ED4B8E300182435 /* addressing.cpp */,
 				7B85D3B81ECF578C000891C8 /* usymboltable.h */,
 				7B85D3BB1ECF6188000891C8 /* usymboltable.cpp */,
 				7B85D3BA1ECF5ECC000891C8 /* usymboltableentry.h */,
 				7BF26F4C1ED08FD6007C7372 /* relocationtable.hpp */,
 				7BF26F561ED0AF42007C7372 /* relocationtableentry.hpp */,
-				7BF26F511ED09A63007C7372 /* sections.cpp */,
 				7BF26F521ED09A63007C7372 /* sections.hpp */,
+				7BF26F511ED09A63007C7372 /* sections.cpp */,
 				7BF26F4F1ED091A2007C7372 /* section.hpp */,
 			);
 			path = assembler;
@@ -179,6 +182,7 @@
 				7B6C73991ECDF1EA00243D2D /* instructions.cpp in Sources */,
 				7BF26F531ED09A63007C7372 /* sections.cpp in Sources */,
 				7B6C739B1ECE10C500243D2D /* keywordsutil.cpp in Sources */,
+				7B4187111ED4B8E300182435 /* addressing.cpp in Sources */,
 				7BDF6DBC1ECC931800A412F5 /* main.cpp in Sources */,
 				7B85D3BE1ECF620F000891C8 /* symboltable.cpp in Sources */,
 				7B85D3B31ECF04A7000891C8 /* directives.cpp in Sources */,
