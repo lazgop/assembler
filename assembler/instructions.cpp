@@ -316,6 +316,11 @@ Instruction::Instruction(string keyWord, string afterKeyword, int lc) {
          break;
       };
    }
+   
+   if (type != "NONE" && (Sections::entries[Sections::entries.size() - 1].name.find(".text") == string::npos)) {
+      cout << "Error: Trying to execute instruction outside of .text section!" << endl;
+      throw exception();
+   }
 }
 
 //*********************************
@@ -384,122 +389,6 @@ int Instruction::getALType(string instruction) {
       }
    }
    return -1;
-}
-
-int Instruction::getMemoryDirectAddress(string word) {
-   if (isValidString(word)){
-      bool labelFound = false;
-      int labelLocation = -1;
-      for (int i=0; i < SymbolTable::entries.size(); i++) {
-         if (word.compare(SymbolTable::entries[i].name) == 0) {
-            labelLocation = i;
-            labelFound = true;
-            break;
-         }
-      }
-      if (!labelFound) {
-         SymbolTableEntry ste = SymbolTableEntry();
-         ste.name = word;
-         ste.addr = -1;
-         ste.flags = "?";
-         ste.numID = (int)SymbolTable::entries.size();
-         ste.size = 0;
-         ste.sectionID = -1;
-         ste.type = "SYM";
-         SymbolTable::pushBack(ste);
-         labelLocation = ste.numID;
-      }
-      if (SymbolTable::entries[labelLocation].flags == "ABS") {
-         return SymbolTable::entries[labelLocation].addr;
-      }
-      RelocationTableEntry rte = RelocationTableEntry();
-      rte.address = locationCounter;
-      rte.numID = labelLocation;
-      rte.type = SymbolTable::entries[labelLocation].flags == "L" ? "R" : "A";
-      Sections::entries[Sections::entries.size() - 1].relTable.entries.push_back(rte);
-      return 0;
-   }
-   
-   int firstPlusLocation = -1;
-   firstPlusLocation = (int)word.find('+');
-   int firstMinusLocation = -1;
-   firstMinusLocation = (int)word.find('-');
-   
-   if (firstPlusLocation != -1 || firstMinusLocation != -1) {
-      if (firstPlusLocation != -1 && firstMinusLocation != -1) {
-         int signLocation = firstPlusLocation < firstMinusLocation ? firstPlusLocation : firstMinusLocation;
-         if (isValidString(word.substr(0, signLocation)) && isConstantExpression(word.substr(signLocation, word.length() - signLocation))) {
-            string label = word.substr(0, signLocation);
-            bool labelFound = false;
-            int labelLocation = -1;
-            for (int i=0; i < SymbolTable::entries.size(); i++) {
-               if (label.compare(SymbolTable::entries[i].name)) {
-                  labelLocation = i;
-                  labelFound = true;
-                  break;
-               }
-            }
-            if (!labelFound) {
-               SymbolTableEntry ste = SymbolTableEntry();
-               ste.name = label;
-               ste.addr = -1;
-               ste.flags = "?";
-               ste.numID = (int)SymbolTable::entries.size();
-               ste.size = 0;
-               ste.sectionID = -1;
-               ste.type = "SYM";
-               SymbolTable::pushBack(ste);
-               labelLocation = ste.numID;
-            }
-            
-            RelocationTableEntry rte = RelocationTableEntry();
-            rte.address = locationCounter;
-            rte.numID = labelLocation;
-            rte.type = SymbolTable::entries[labelLocation].flags == "L" ? "R" : "A";
-            Sections::entries[Sections::entries.size() - 1].relTable.entries.push_back(rte);
-            return getExpressionValue(word.substr(signLocation, word.length() - signLocation));
-         }
-      } else {
-         int signLocation = firstPlusLocation != -1 ? firstPlusLocation : firstMinusLocation;
-         if (isValidString(word.substr(0, signLocation)) && isConstantExpression(word.substr(signLocation, word.length() - signLocation))) {
-            
-            string label = word.substr(0, signLocation);
-            bool labelFound = false;
-            int labelLocation = -1;
-            for (int i=0; i < SymbolTable::entries.size(); i++) {
-               if (label.compare(SymbolTable::entries[i].name)) {
-                  labelLocation = i;
-                  labelFound = true;
-                  break;
-               }
-            }
-            if (!labelFound) {
-               SymbolTableEntry ste = SymbolTableEntry();
-               ste.name = label;
-               ste.addr = -1;
-               ste.flags = "?";
-               ste.numID = (int)SymbolTable::entries.size();
-               ste.size = 0;
-               ste.sectionID = -1;
-               ste.type = "SYM";
-               SymbolTable::pushBack(ste);
-               labelLocation = ste.numID;
-            }
-            
-            RelocationTableEntry rte = RelocationTableEntry();
-            rte.address = locationCounter;
-            rte.numID = labelLocation;
-            rte.type = SymbolTable::entries[labelLocation].flags == "L" ? "R" : "A";
-            Sections::entries[Sections::entries.size() - 1].relTable.entries.push_back(rte);
-            return getExpressionValue(word.substr(signLocation, word.length() - signLocation));
-         }
-      }
-   }
-   
-   if (isConstantExpression(word)) {
-      return getExpressionValue(word);
-   }
-   return 0;
 }
 
 int Instruction::getLSTypeCode(int lsInsType) {

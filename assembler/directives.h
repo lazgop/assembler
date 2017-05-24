@@ -76,8 +76,6 @@ public:
                   }
                   break;
                }
-               default:
-                  break;
             }
             break;
          case 2:{ // other Directives
@@ -88,54 +86,51 @@ public:
             }
             type = "DEF";
             string rem = InputLine::getRemainingStringAfter("DEF", afterKeyword);
-            if (isConstantExpression(rem)) {
-               if (isCalculatableExpression(rem)) {
-                  int val = getExpressionValue(rem);
-                  SymbolTableEntry entry = SymbolTableEntry();
-                  entry.type = "SYM";
-                  entry.numID = (int)SymbolTable::entries.size();
-                  entry.name = keyWord;
-                  entry.flags = "ABS";
-                  entry.sectionID = -1;
-                  entry.addr = val;
-                  SymbolTable::pushBack(entry);
-                  
-                  bool calculatedSymbolInThisPass = false;
-                  do {
-                     calculatedSymbolInThisPass = false;
-                     for (int i=0; i < USymbolTable::entries.size(); i++) {
-                        if(isCalculatableExpression(USymbolTable::entries[i].expression) && USymbolTable::entries[i].name != "-1") {
-                           int val = getExpressionValue(USymbolTable::entries[i].expression);
-                           SymbolTableEntry entry = SymbolTableEntry();
-                           entry.type = "SYM";
-                           entry.numID = (int)SymbolTable::entries.size();
-                           entry.name = USymbolTable::entries[i].name;
-                           entry.flags = "ABS";
-                           entry.sectionID = -1;
-                           entry.addr = val;
-                           SymbolTable::pushBack(entry);
-                           calculatedSymbolInThisPass = true;
-                           USymbolTable::entries[i].name = "-1";
-                        }
-                     }
-                  }while(calculatedSymbolInThisPass);
-                  
-                  vector<USymbolTableEntry> tmpUSymbTbl = vector<USymbolTableEntry>();
+            
+            int exprVal = 0;
+            try {
+               exprVal = getExpressionValue(rem);
+               SymbolTableEntry entry = SymbolTableEntry();
+               entry.type = "SYM";
+               entry.numID = (int)SymbolTable::entries.size();
+               entry.name = keyWord;
+               entry.flags = "ABS";
+               entry.sectionID = -1;
+               entry.addr = exprVal;
+               SymbolTable::pushBack(entry);
+               bool calculatedSymbolInThisPass = false;
+               do {
+                  calculatedSymbolInThisPass = false;
                   for (int i=0; i < USymbolTable::entries.size(); i++) {
-                     if (USymbolTable::entries[i].name != "-1") {
-                        tmpUSymbTbl.push_back(USymbolTable::entries[i]);
+                     if(isCalculatableExpression(USymbolTable::entries[i].expression) && USymbolTable::entries[i].name != "-1") {
+                        int val = getExpressionValue(USymbolTable::entries[i].expression);
+                        SymbolTableEntry entry = SymbolTableEntry();
+                        entry.type = "SYM";
+                        entry.numID = (int)SymbolTable::entries.size();
+                        entry.name = USymbolTable::entries[i].name;
+                        entry.flags = "ABS";
+                        entry.sectionID = -1;
+                        entry.addr = val;
+                        SymbolTable::pushBack(entry);
+                        calculatedSymbolInThisPass = true;
+                        USymbolTable::entries[i].name = "-1";
                      }
                   }
-                  USymbolTable::entries = tmpUSymbTbl;
-               } else {
-                  USymbolTableEntry uste = USymbolTableEntry();
-                  uste.name = keyWord;
-                  uste.expression = rem;
-                  USymbolTable::pushBack(uste);
+               }while(calculatedSymbolInThisPass);
+               
+               vector<USymbolTableEntry> tmpUSymbTbl = vector<USymbolTableEntry>();
+               for (int i=0; i < USymbolTable::entries.size(); i++) {
+                  if (USymbolTable::entries[i].name != "-1") {
+                     tmpUSymbTbl.push_back(USymbolTable::entries[i]);
+                  }
                }
-            } else {
-               cout << "Error: Right of DEF is not a constant expression!" << endl;
-               throw exception();
+               USymbolTable::entries = tmpUSymbTbl;
+
+            }catch(...) {
+               USymbolTableEntry uste = USymbolTableEntry();
+               uste.name = keyWord;
+               uste.expression = rem;
+               USymbolTable::pushBack(uste);
             }
             size = 0;
             break;
@@ -176,48 +171,56 @@ public:
             vector<string> rem = convertRemainderWithDUP(afterKeyword);
             size = constSize * (int)rem.size();
             for (int i = 0; i < rem.size(); i++) {
-               int val = 0;
-               bool foundLabel = false;
-               for (int j = 0; j < SymbolTable::entries.size(); j++) {
-                  if (SymbolTable::entries[j].name.compare(rem[i]) == 0) {
-                     if (SymbolTable::entries[j].sectionID == -1) {
-                        val = SymbolTable::entries[j].addr;
-                     } else {
-                        RelocationTableEntry rte = RelocationTableEntry();
-                        rte.numID = SymbolTable::entries[j].numID;
-                        rte.address = locationCounter + i * constSize;
-                        rte.type = "R";
-                        Sections::entries[Sections::entries.size() - 1].relTable.entries.push_back(rte);
-                        val = 0;
+               string curOp = rem[i];
+               string label = InputLine::getFirstWord(curOp);
+               int value = 0;
+               int labelLocation = -2;
+               if (isValidString(label)) {
+                  bool labelFound = false;
+                  for (int i=0; i < SymbolTable::entries.size(); i++) {
+                     if (SymbolTable::entries[i].name.compare(label) == 0) {
+                        if (SymbolTable::entries[i].flags == "ABS") {
+                           // If first word in expression is abs symbol than it must be a constant expression
+                           value = getExpressionValue(curOp);
+                           labelLocation = -1;
+                           labelFound = true;
+                           break;
+                        }
+                        labelLocation = i;
+                        labelFound = true;
+                        break;
                      }
-                     foundLabel = true;
-                     break;
+                  }
+                  
+                  if (!labelFound) {
+                     SymbolTableEntry ste = SymbolTableEntry();
+                     ste.addr = -1;
+                     ste.flags = "?";
+                     ste.name = label;
+                     ste.numID = (int)SymbolTable::entries.size();
+                     ste.sectionID = -1;
+                     ste.type = "SYM";
+                     SymbolTable::pushBack(ste);
+                     labelLocation = (int)SymbolTable::entries.size() - 1;
+                  }
+                  
+                  if (labelLocation != -1) {
+                     RelocationTableEntry rte = RelocationTableEntry();
+                     rte.numID = SymbolTable::entries[labelLocation].numID;
+                     rte.address = locationCounter;
+                     rte.type = "A";
+                     Sections::entries[Sections::entries.size() - 1].relTable.entries.push_back(rte);
+                     curOp = curOp.substr(label.length());
                   }
                }
                
-               if (!foundLabel && isValidString(rem[i])) {
-                  SymbolTableEntry entry = SymbolTableEntry();
-                  entry.type = "SYM";
-                  entry.numID = (int)SymbolTable::entries.size();
-                  entry.name = rem[i];
-                  entry.flags = "?";
-                  entry.sectionID = -1;
-                  entry.addr = -1;
-                  SymbolTable::pushBack(entry);
-                  
-                  RelocationTableEntry rte = RelocationTableEntry();
-                  rte.numID = entry.numID;
-                  rte.address = locationCounter + i * constSize;
-                  rte.type = "A";
-                  Sections::entries[Sections::entries.size() - 1].relTable.entries.push_back(rte);
-                  val = 0;
-               } else {
-                  val = getExpressionValue(rem[i]);
+               if (labelLocation != -1) {
+                  value = getExpressionValue(curOp);
                }
-               
+                           
                for (int k=0; k < constSize; k++) {
-                  Sections::entries[Sections::entries.size() - 1].content.push_back(char(val));
-                  val = val >> 8;
+                  Sections::entries[Sections::entries.size() - 1].content.push_back(char(value));
+                  value = value >> 8;
                }
             }
             break;

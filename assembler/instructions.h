@@ -42,8 +42,7 @@ public:
    
    int getLSType(string instruction);
    int getALType(string instruction);
-   
-   int getMemoryDirectAddress(string word);
+
    int getLSTypeCode(int lsInsType);
 };
 

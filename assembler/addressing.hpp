@@ -25,6 +25,7 @@ public:
    static bool isImmediate(string word);
    static bool isPCRelPom(string word);
    static int getType(string word);
+   static int getMemoryDirectAddress(string word, int);
 };
 
 #endif /* addressing_hpp */

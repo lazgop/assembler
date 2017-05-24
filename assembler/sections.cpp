@@ -34,14 +34,16 @@ void Sections::outputSections() {
       
       cout << Sections::entries[i].name << endl;
       
-      for (int j=0; j < Sections::entries[i].content.size(); j++) {
-         if (j%16 == 0 && j != 0) {
-            cout << endl;
+      if (Sections::entries[i].name.find(".bss") == string::npos) {
+         for (int j=0; j < Sections::entries[i].content.size(); j++) {
+            if (j%16 == 0 && j != 0) {
+               cout << endl;
+            }
+            printHexaFromChar(Sections::entries[i].content[j]);
+            cout << " ";
          }
-         printHexaFromChar(Sections::entries[i].content[j]);
-         cout << " ";
+         
+         cout << endl;
       }
-      
-      cout << endl;
    }
 }
