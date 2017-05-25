@@ -155,6 +155,28 @@ void printHexaFromChar(char c) {
    }  
 }
 
+string getHexFromChar(char c) {
+   
+   string hex = "";
+   
+   unsigned int maskedVal = (c >> 4) & 0x0F;
+   if (maskedVal <=9) {
+      hex += char(maskedVal + 48);
+   } else {
+      hex += char(maskedVal + 55);
+   }
+   
+   maskedVal = 0x0F & c;
+   if (maskedVal <=9) {
+      hex += char(maskedVal + 48);
+   } else {
+      hex += char(maskedVal + 55);
+   }
+   
+   return hex;
+}
+
+
 bool isDirective(string word){
    return false;
 }
@@ -401,7 +423,7 @@ int evalPostfix(vector<string> postfix) {
          if (op1.calculated == false) {
             for (int j=0; j < SymbolTable::entries.size(); j++){
                if (SymbolTable::entries[j].name.compare(op1.label) == 0) {
-                  if (SymbolTable::entries[j].flags == "ABS") {
+                  if (SymbolTable::entries[j].sectionID == -1) {
                      op1Section = -1;
                      op1.calculated = true;
                      op1.value = SymbolTable::entries[j].addr;
@@ -422,7 +444,7 @@ int evalPostfix(vector<string> postfix) {
          if (op2.calculated == false) {
             for (int j=0; j < SymbolTable::entries.size(); j++){
                if (SymbolTable::entries[j].name.compare(op2.label) == 0) {
-                  if (SymbolTable::entries[j].flags == "ABS") {
+                  if (SymbolTable::entries[j].sectionID == -1) {
                      op2Section = -1;
                      op2.calculated = true;
                      op2.value = SymbolTable::entries[j].addr;
@@ -480,7 +502,7 @@ int evalPostfix(vector<string> postfix) {
    if (!op1.calculated) {
       for (i=0; i < SymbolTable::entries.size(); i++){
          if (SymbolTable::entries[i].name.compare(op1.label) == 0) {
-            if (SymbolTable::entries[i].flags == "ABS") {
+            if (SymbolTable::entries[i].sectionID == -1) {
                op1Section = -1;
                op1.calculated = true;
                op1.value = SymbolTable::entries[i].addr;
@@ -605,4 +627,17 @@ string trimSpacesFromStr(string word) {
    trimmedString = trimmedString.substr(0, trimmedString.length() - spaces);
    
    return trimmedString;
+}
+
+string getHexStringFromInt(int num) {
+   string hex = "";
+   for (int i=0; i < 8; i++) {
+      unsigned int c = (num >> (4*(7-i))) & (0x0F);
+      if (c <= 9) {
+         hex += char(c + 48);
+      } else {
+         hex += char(c + 55);
+      }
+   }
+   return hex;
 }

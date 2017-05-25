@@ -16,6 +16,7 @@ class Sections {
 public:
    static vector<Section> entries;
    static void outputSections();
+   static void outputSections(ofstream &out);
 };
 
 #endif /* sectons_hpp */

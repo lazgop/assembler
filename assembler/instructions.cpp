@@ -318,7 +318,8 @@ Instruction::Instruction(string keyWord, string afterKeyword, int lc) {
       };
    }
    
-   if (type != "NONE" && (Sections::entries[Sections::entries.size() - 1].name.find(".text") == string::npos)) {
+   Section currentSection = Sections::entries[Sections::entries.size() - 1];
+   if (type != "NONE" && (SymbolTable::entries[currentSection.numID].flags.find("X") == string::npos)) {
       cout << "Error: Trying to execute instruction outside of .text section!" << endl;
       throw exception();
    }

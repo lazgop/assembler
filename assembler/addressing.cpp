@@ -239,7 +239,7 @@ int Addressing::getMemoryDirectAddress(string word, int locationCounter, string 
       int labelLocation = -1;
       for (int i=0; i < SymbolTable::entries.size(); i++) {
          if (SymbolTable::entries[i].name.compare(label) == 0) {
-            if (SymbolTable::entries[i].flags == "ABS") {
+            if (SymbolTable::entries[i].sectionID == -1) {
                // If first word in expression is abs symbol than it must be a constant expression
                value = getExpressionValue(word);
                labelLocation = 0;

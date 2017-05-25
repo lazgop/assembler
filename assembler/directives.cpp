@@ -85,8 +85,8 @@ Directive::Directive(string keyWord, string afterKeyword){
             entry.type = "SYM";
             entry.numID = (int)SymbolTable::entries.size();
             entry.name = keyWord;
-            entry.flags = "ABS";
-            entry.sectionID = 0;
+            entry.flags = "L";
+            entry.sectionID = -1;
             entry.addr = exprVal;
             SymbolTable::pushBack(entry);
             bool calculatedSymbolInThisPass = false;
@@ -100,8 +100,8 @@ Directive::Directive(string keyWord, string afterKeyword){
                         entry.type = "SYM";
                         entry.numID = (int)SymbolTable::entries.size();
                         entry.name = USymbolTable::entries[i].name;
-                        entry.flags = "ABS";
-                        entry.sectionID = 0;
+                        entry.flags = "L";
+                        entry.sectionID = -1;
                         entry.addr = val;
                         SymbolTable::pushBack(entry);
                         calculatedSymbolInThisPass = true;
@@ -188,7 +188,7 @@ Directive::Directive(string keyWord, string afterKeyword, int locationCounter) {
                bool labelFound = false;
                for (int i=0; i < SymbolTable::entries.size(); i++) {
                   if (SymbolTable::entries[i].name.compare(label) == 0) {
-                     if (SymbolTable::entries[i].flags == "ABS") {
+                     if (SymbolTable::entries[i].sectionID == -1) {
                         // If first word in expression is abs symbol than it must be a constant expression
                         value = getExpressionValue(curOp);
                         labelLocation = 0;
@@ -263,8 +263,8 @@ Directive::Directive(string keyWord, string afterKeyword, int locationCounter) {
                      entry.numID = (int)SymbolTable::entries.size();
                      entry.name = rem[i];
                      entry.flags = "G";
-                     entry.sectionID = -1;
-                     entry.addr = -1;
+                     entry.sectionID = 0;
+                     entry.addr = 0;
                      SymbolTable::pushBack(entry);
                   }
                }

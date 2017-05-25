@@ -22,9 +22,11 @@ int getExpressionValue(string expr);
 bool isCalculatableExpression(string expr);
 string getRemainderFromVectorPosition(vector<string>, int);
 void printHexaFromChar(char);
+string getHexFromChar(char c);
 int getRegNum(string word);
 int getRegNumFromOp(string word);
 int getRegNumFromOp(string word, string *offset);
 string trimSpacesFromStr(string);
 vector<string> splitInfixExpression(string infix);
+string getHexStringFromInt(int num);
 #endif /* keywordsutil_h */

@@ -75,6 +75,16 @@ void assemblerFistPass(list<InputLine> *inputFile) {
          entry.sectionID = entry.numID;
          entry.addr = addressCounter;
          
+         if (firstWord.find(".bss") != string::npos) {
+            entry.flags = "ARW";
+         } else if (firstWord.find(".text") != string::npos) {
+            entry.flags = "ARX";
+         } else if (firstWord.find(".data") != string::npos) {
+            entry.flags = "ARW";
+         } else if (firstWord.find(".rodata") != string::npos) {
+            entry.flags = "AR";
+         }
+         
          SymbolTable::entries[lastSectionIndex].size = locationCounter;
          
          locationCounter = 0;
@@ -236,8 +246,11 @@ int main(int argc, const char * argv[]) {
       }
    }
    
+   
    SymbolTable::outputSymbolTable();
    Sections::outputSections();
+   
+   FileManager::outputToFile(argv[2]);
    
    return 0;
 }
