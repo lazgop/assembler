@@ -19,6 +19,9 @@ vector<Section> Sections::entries = vector<Section>();
 
 void Sections::outputSections() {
    for (int i=0; i < Sections::entries.size(); i++) {
+      if (Sections::entries[i].name.find(".bss") != string::npos) {
+         continue;
+      }
       cout << "#rel" << Sections::entries[i].name << endl;
       cout << setw(10) << "numID"
          << setw(10) << "address"
@@ -34,16 +37,19 @@ void Sections::outputSections() {
       
       cout << Sections::entries[i].name << endl;
       
-      if (Sections::entries[i].name.find(".bss") == string::npos) {
-         for (int j=0; j < Sections::entries[i].content.size(); j++) {
-            if (j%16 == 0 && j != 0) {
-               cout << endl;
-            }
-            printHexaFromChar(Sections::entries[i].content[j]);
-            cout << " ";
+      
+      for (int j=0; j < Sections::entries[i].content.size(); j++) {
+         if (j%16 == 0 && j != 0) {
+            cout << endl;
          }
-         
-         cout << endl;
+         if (Sections::entries[i].content[j] == '?') {
+            cout << "?";
+         } else {
+            printHexaFromChar(Sections::entries[i].content[j]);
+         }
+         cout << " ";
       }
+      
+      cout << endl;
    }
 }

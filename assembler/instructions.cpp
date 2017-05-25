@@ -198,7 +198,7 @@ Instruction::Instruction(string keyWord, string afterKeyword, int lc) {
                
                if (size == 8) { // only in this case we have displacement, otherwise it is ignored
                   for (int i = 0; i < 4; i++) {
-                     int c = displacement >> (8*(3-i));
+                     int c = displacement >> (8*i);
                      instruction.push_back(char(c));
                   }
                }
@@ -227,7 +227,7 @@ Instruction::Instruction(string keyWord, string afterKeyword, int lc) {
                
                if (size == 8) {
                   for (int i = 0; i < 4; i++) {
-                     int c = displacement >> (8*(3-i));
+                     int c = displacement >> (8*i);
                      instruction.push_back(char(c));
                   }
                }
@@ -261,15 +261,16 @@ Instruction::Instruction(string keyWord, string afterKeyword, int lc) {
          arrayOfAllowedAddressings.push_back(5); // $
          int displacement = Addressing::resolveAddressingAndReturnDisplacement(operands[1], this, arrayOfAllowedAddressings);
          
-         int reg1 = getRegNum(operands[0]);
+         int reg1 = getRegNumFromOp(operands[0]);
          instruction.push_back(reg1 << 3);
          instruction.push_back(getLSTypeCode(getLSType(keyWord)));
          
          if (size == 8) {
             for (int i = 0; i < 4; i++) {
-               int c = displacement >> (8*(3-i));
+               int c = displacement >> (8*i);
                instruction.push_back(char(c));
             }
+            cout << endl;
          }
          break;
       }

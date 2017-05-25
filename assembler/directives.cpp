@@ -168,6 +168,20 @@ Directive::Directive(string keyWord, string afterKeyword, int locationCounter) {
          for (int i = 0; i < rem.size(); i++) {
             string curOp = rem[i];
             string label = InputLine::getFirstWord(curOp);
+            if (label == "?") {
+               for (int k=0; k < constSize; k++) {
+                  Sections::entries[Sections::entries.size() - 1].content.push_back('?');
+               }
+               locationCounter += constSize;
+               continue;
+            }
+            
+            Section currentSection = Sections::entries[Sections::entries.size() - 1];
+            if (label != "?" && currentSection.name.find(".bss") != string::npos) {
+               cout << "Error: All data in .bss section must be '?'!" << endl;
+               throw exception();
+            }
+            
             int value = 0;
             int labelLocation = -1;
             if (isValidString(label)) {
@@ -224,6 +238,7 @@ Directive::Directive(string keyWord, string afterKeyword, int locationCounter) {
                Sections::entries[Sections::entries.size() - 1].content.push_back(char(value));
                value = value >> 8;
             }
+            locationCounter += constSize;
          }
          break;
       }

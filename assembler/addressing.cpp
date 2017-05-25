@@ -77,7 +77,7 @@ bool Addressing::isImmediate(string word) {
 }
 
 bool Addressing::isPCRelPom(string word) {
-   if (word[0] == '$' && isValidString(word.substr(1, word.length() - 1))) {
+   if (word[0] == '$') {
       return true;
    }
    return false;
@@ -123,7 +123,6 @@ int Addressing::resolveAddressingAndReturnDisplacement(string op, Instruction *i
       cout << "Error: Wrong type of addressing for instruction of type " << instr->type << endl;
       throw exception();
    }
-   
    switch (addrType) {
       case 0: {// Immed
          instr->size = 8;
@@ -173,14 +172,14 @@ int Addressing::resolveAddressingAndReturnDisplacement(string op, Instruction *i
          reg0Field = getRegNumFromOp(op, &offsetString) & 0b00011111;
          instr->locationCounter += 4;
          // TODO: - in case of regindpom if label is found relocation is relative???
-         // maybe should use getMemoryDirectAddress function
+         // maybe should use getMemoryDirectAddress function with isPCRel set to true
          displacement = getExpressionValue(offsetString);
          instr->locationCounter += 4;
          break;
       }
       case 5: { // PCRELPOM $
          instr->size = 8;
-         adrField = 0b010;
+         adrField = 0b111;
          reg0Field = 0b10001;
          op = op.substr(1);
          string label = "";
@@ -268,20 +267,26 @@ int Addressing::getMemoryDirectAddress(string word, int locationCounter, string 
       if (labelLocation != 0) {
          SymbolTableEntry ste = SymbolTable::entries[labelLocation];
          Section currentSection = Sections::entries[Sections::entries.size() - 1];
+         
          if (ste.sectionID == currentSection.numID && relocationType == "R") {
             // If label is in the same section as instruction that is using the label and relative addressing is being used
             // then the value of displacement is difference between the offset of the label from start of the current section (ste.addr)
             // and current location in this section (actually current location + 4 is the starting address of next instruction and because of PC it must be
             // incremented by 4)
+            value = ste.addr;
+            
             if (isPCRel) {
-               value = ste.addr - (locationCounter + 4);
+               value -= locationCounter + 4;
             } else {
-               value = ste.addr - locationCounter;
+               value -= locationCounter;
             }
          } else {
             RelocationTableEntry rte = RelocationTableEntry();
             if (ste.flags == "L") {
                value = ste.addr;
+               if (isPCRel) {
+                  value -=  4;
+               }
                rte.numID = ste.sectionID;
             } else {
                rte.numID = ste.numID;
@@ -289,15 +294,15 @@ int Addressing::getMemoryDirectAddress(string word, int locationCounter, string 
             rte.address = locationCounter;
             rte.type = relocationType;
             Sections::entries[Sections::entries.size() - 1].relTable.entries.push_back(rte);
-            word = word.substr(label.length());
          }
+         word = word.substr(label.length());
       }
    }
    
    if (word != "") {
       value += getExpressionValue(word);
    }
-
+   
    return value;
 }
 
