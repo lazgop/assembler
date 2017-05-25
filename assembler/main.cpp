@@ -16,6 +16,7 @@
 #include "keywordsutil.h"
 #include "symboltable.h"
 #include "symboltableentry.h"
+#include "usymboltable.h"
 #include "instructions.h"
 #include "directives.h"
 #include "section.hpp"
@@ -25,9 +26,19 @@ using namespace std;
 
 void assemblerFistPass(list<InputLine> *inputFile) {
    
+   // UNDEF section
+   SymbolTableEntry entry = SymbolTableEntry();
+   entry.type = "SEG";
+   entry.numID = 0;
+   entry.name = "UNDEF";
+   entry.sectionID = 0;
+   entry.addr = 0;
+   SymbolTable::pushBack(entry);
+   // end UNDEF section
+   
    int locationCounter = 0;
    int addressCounter = 0;
-   int lastSectionIndex = -1;
+   int lastSectionIndex = 0;
    bool lastDirectiveORG = false;
    int lastDirectiveORGAdress = -1;
    
@@ -64,9 +75,7 @@ void assemblerFistPass(list<InputLine> *inputFile) {
          entry.sectionID = entry.numID;
          entry.addr = addressCounter;
          
-         if (lastSectionIndex != -1) {
-            SymbolTable::entries[lastSectionIndex].size = locationCounter;
-         }
+         SymbolTable::entries[lastSectionIndex].size = locationCounter;
          
          locationCounter = 0;
          
@@ -133,7 +142,6 @@ void assemblerFistPass(list<InputLine> *inputFile) {
 void assemblerSecondPass(list<InputLine> *inputFile) {
    int locationCounter = 0;
    int addressCounter = 0;
-   int lastSectionIndex = -1;
    bool lastDirectiveORG = false;
    int lastDirectiveORGAdress = -1;
    
@@ -149,7 +157,6 @@ void assemblerSecondPass(list<InputLine> *inputFile) {
          continue;
       }
       
-      vector<string> curWords = iterator->words;
       if (isLabel(firstWord)) {
          
          if (!(iterator->checkIfSomethingBehindWord(firstWord))) {
@@ -189,9 +196,6 @@ void assemblerSecondPass(list<InputLine> *inputFile) {
       throw exception();
    }
    
-   if (lastSectionIndex != -1) {
-      SymbolTable::entries[lastSectionIndex].size = locationCounter;
-   }
    locationCounter = 0;
 }
 
@@ -208,6 +212,17 @@ int main(int argc, const char * argv[]) {
    } catch (exception e) {
       return 1;
    }
+   
+   for (int i=0; i < USymbolTable::entries.size(); i++) {
+      // calculate expression value
+      // TODO: - maybe check if label is first operand
+   }
+   
+   if (USymbolTable::entries.size() > 0) {
+      cout << "Error: Uncalculatable symbol/s found in Uncalculatable Symbols Table!" << endl;
+      return 1;
+   }
+   
    try {
       assemblerSecondPass(inputFile);
    }catch(exception e) {

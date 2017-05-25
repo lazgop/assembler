@@ -25,11 +25,11 @@ bool Addressing::isRegisterIndirect(string word) {
 bool Addressing::isRegisterIndirectWithOffset(string word) {
    if (word[0] == '[' && word[word.length() - 1] == ']') {
       if (isRegister(word.substr(1, 3))) {
-         if (isConstantExpression(word.substr(4, word.length() - 5))) {
+         if (word.substr(4, word.length() - 5).length() > 0) {
             return true;
          }
       } else if (isRegister(word.substr(1, 2))) {
-         if (isConstantExpression(word.substr(3, word.length() - 4))) {
+         if (word.substr(3, word.length() - 4).length() > 0) {
             return true;
          }
       }
@@ -132,15 +132,15 @@ int Addressing::resolveAddressingAndReturnDisplacement(string op, Instruction *i
          reg0Field = 0b00000;
          instr->locationCounter += 4;
          op = op.substr(1);
-         // TODO: - move this func to addressing and refactor it
-         displacement = Addressing::getMemoryDirectAddress(op, instr->locationCounter);
+         // in case of immed if label is found relocation must be absolute
+         displacement = Addressing::getMemoryDirectAddress(op, instr->locationCounter, "A", false);
          instr->locationCounter +=4;
          break;
       }
       case 1: { // RegDir
          instr->size = 4;
          adrField = 0b000;
-         
+         // no relocation
          reg0Field = getRegNumFromOp(op) & 0b00011111;
          displacement = 0;
          instr->locationCounter += 4;
@@ -152,14 +152,15 @@ int Addressing::resolveAddressingAndReturnDisplacement(string op, Instruction *i
          reg0Field = 0b00000;
          
          instr->locationCounter += 4;
-         //check if label than extract expression...
-         displacement = Addressing::getMemoryDirectAddress(op, instr->locationCounter);
+         // in case of memdir if label is found relocation must be absolute
+         displacement = Addressing::getMemoryDirectAddress(op, instr->locationCounter, "A", false);
          instr->locationCounter += 4;
          break;
       }
       case 3: {// RegInd
          instr->size = 4;
          adrField = 0b010;
+         // no relocation
          reg0Field = getRegNumFromOp(op) & 0b00011111;
          displacement = 0;
          instr->locationCounter += 4;
@@ -171,6 +172,8 @@ int Addressing::resolveAddressingAndReturnDisplacement(string op, Instruction *i
          string offsetString;
          reg0Field = getRegNumFromOp(op, &offsetString) & 0b00011111;
          instr->locationCounter += 4;
+         // TODO: - in case of regindpom if label is found relocation is relative???
+         // maybe should use getMemoryDirectAddress function
          displacement = getExpressionValue(offsetString);
          instr->locationCounter += 4;
          break;
@@ -180,62 +183,57 @@ int Addressing::resolveAddressingAndReturnDisplacement(string op, Instruction *i
          adrField = 0b010;
          reg0Field = 0b10001;
          op = op.substr(1);
-         if (!isValidString(op)) {
+         string label = "";
+         
+         // First operand must be a label
+         for (int i=0; i < op.length(); i++) {
+            if (op.substr(i,1) == " " && label == "") {
+               continue;
+            }
+            
+            if (op.substr(i,1) == " ") {
+               break;
+            }
+            
+            if (op.substr(i,1) == ";") {
+               break;
+            }
+            
+            if (op.substr(i,1) == "+" || op.substr(i,1) == "-") {
+               break;
+            }
+            
+            label+=op.substr(i,1);
+         }
+         
+         
+         if (!isValidString(label)) {
             cout << "Error: Addressing using $ must use a valid label!" << endl;
             throw exception();
          }
          
-         bool labelFound = false;
-         int labelLocation = -1;
-         for (int i=0; i < SymbolTable::entries.size(); i++) {
-            if (SymbolTable::entries[i].name.compare(op) == 0) {
-               if (SymbolTable::entries[i].flags == "ABS") {
-                  cout << "Error: Addressing using $ can't use absolute symbol!" << endl;
-                  throw exception();
-               }
-               labelLocation = i;
-               labelFound = true;
-            }
-         }
-         
-         if (!labelFound) {
-            SymbolTableEntry ste = SymbolTableEntry();
-            ste.addr = -1;
-            ste.flags = "?";
-            ste.name = op;
-            ste.numID = (int)SymbolTable::entries.size();
-            ste.sectionID = -1;
-            ste.type = "SYM";
-            SymbolTable::pushBack(ste);
-            labelLocation = (int)SymbolTable::entries.size() - 1;
-         }
-         
-         RelocationTableEntry rte = RelocationTableEntry();
-         rte.numID = SymbolTable::entries[labelLocation].numID;
-         rte.address = instr->locationCounter;
-         rte.type = "R";
-         Sections::entries[Sections::entries.size() - 1].relTable.entries.push_back(rte);
-         
-         displacement = 0;
+         instr->locationCounter += 4;
+         displacement = Addressing::getMemoryDirectAddress(op, instr->locationCounter, "R", true);
          break;
       }
       default:
          cout << "Error: Unknown addressing type!" << endl;
          throw exception();
    }
-   unsigned char adrAndReg0Fields = (adrField << 3) | reg0Field;
+   unsigned char adrAndReg0Fields = (adrField << 5) | reg0Field;
    instr->instruction.push_back(adrAndReg0Fields);
    return displacement;
 }
 
 
-int Addressing::getMemoryDirectAddress(string word, int locationCounter) {
+int Addressing::getMemoryDirectAddress(string word, int locationCounter, string relocationType, bool isPCRel) {
    string label = InputLine::getFirstWord(word);
    
    if (label == "") {
       cout << "Error: Trying to address with empty value!" << endl;
       throw exception();
    }
+   int value = 0;
    
    if (isValidString(label)) {
       bool labelFound = false;
@@ -244,7 +242,10 @@ int Addressing::getMemoryDirectAddress(string word, int locationCounter) {
          if (SymbolTable::entries[i].name.compare(label) == 0) {
             if (SymbolTable::entries[i].flags == "ABS") {
                // If first word in expression is abs symbol than it must be a constant expression
-               return getExpressionValue(word);
+               value = getExpressionValue(word);
+               labelLocation = 0;
+               labelFound = true;
+               break;
             }
             labelLocation = i;
             labelFound = true;
@@ -254,28 +255,49 @@ int Addressing::getMemoryDirectAddress(string word, int locationCounter) {
       
       if (!labelFound) {
          SymbolTableEntry ste = SymbolTableEntry();
-         ste.addr = -1;
+         ste.addr = 0;
          ste.flags = "?";
          ste.name = label;
          ste.numID = (int)SymbolTable::entries.size();
-         ste.sectionID = -1;
+         ste.sectionID = 0;
          ste.type = "SYM";
          SymbolTable::pushBack(ste);
          labelLocation = (int)SymbolTable::entries.size() - 1;
       }
       
-      RelocationTableEntry rte = RelocationTableEntry();
-      rte.numID = SymbolTable::entries[labelLocation].numID;
-      rte.address = locationCounter;
-      rte.type = "A";
-      Sections::entries[Sections::entries.size() - 1].relTable.entries.push_back(rte);
-      word = word.substr(label.length());
+      if (labelLocation != 0) {
+         SymbolTableEntry ste = SymbolTable::entries[labelLocation];
+         Section currentSection = Sections::entries[Sections::entries.size() - 1];
+         if (ste.sectionID == currentSection.numID && relocationType == "R") {
+            // If label is in the same section as instruction that is using the label and relative addressing is being used
+            // then the value of displacement is difference between the offset of the label from start of the current section (ste.addr)
+            // and current location in this section (actually current location + 4 is the starting address of next instruction and because of PC it must be
+            // incremented by 4)
+            if (isPCRel) {
+               value = ste.addr - (locationCounter + 4);
+            } else {
+               value = ste.addr - locationCounter;
+            }
+         } else {
+            RelocationTableEntry rte = RelocationTableEntry();
+            if (ste.flags == "L") {
+               value = ste.addr;
+               rte.numID = ste.sectionID;
+            } else {
+               rte.numID = ste.numID;
+            }
+            rte.address = locationCounter;
+            rte.type = relocationType;
+            Sections::entries[Sections::entries.size() - 1].relTable.entries.push_back(rte);
+            word = word.substr(label.length());
+         }
+      }
    }
    
-   if (word == "") {
-      return 0;
+   if (word != "") {
+      value += getExpressionValue(word);
    }
-   
-   return getExpressionValue(word);
+
+   return value;
 }
 

@@ -211,70 +211,73 @@ vector<string> splitInfixExpression(string infix) {
 
 bool isConstantExpression(string expression) {
    // TODO: - FINISH CONSTANT EXPRESSION - BUG WITH [R1]
-   vector<string> expressionParts = vector<string>();
-   string currentPart = "";
-   for (int i = 0; i < expression.length(); i++) {
-      if (expression[i] == '(' || expression[i] == ')') {
-         if (currentPart != "") {
-            expressionParts.push_back(currentPart);
-            currentPart = "";
-         }
-         char c = expression[i];
-         expressionParts.push_back(string(1,c));
-      } else if (expression[i] == '+' || expression[i] == '-' || expression[i] == '*' || expression[i] == '/') {
-         if (currentPart != "") {
-            expressionParts.push_back(currentPart);
-            currentPart = "";
-         }
-         char c = expression[i];
-         expressionParts.push_back(string(1,c));
-      } else if ((expression[i] >= '0' && expression[i] <= '9') || (expression[i] >= 'a' && expression[i] <= 'z') || (expression[i] >= 'A' && expression[i] <= 'Z')) {
-         char c = expression[i];
-         currentPart += string(1,c);
-      } else if (expression[i] == '\'') {
-         expressionParts.push_back(expression.substr(i, 3));
-         i += 2;
-      }
-   }
+//   vector<string> expressionParts = vector<string>();
+//   string currentPart = "";
+//   for (int i = 0; i < expression.length(); i++) {
+//      if (expression[i] == '(' || expression[i] == ')') {
+//         if (currentPart != "") {
+//            expressionParts.push_back(currentPart);
+//            currentPart = "";
+//         }
+//         char c = expression[i];
+//         expressionParts.push_back(string(1,c));
+//      } else if (expression[i] == '+' || expression[i] == '-' || expression[i] == '*' || expression[i] == '/') {
+//         if (currentPart != "") {
+//            expressionParts.push_back(currentPart);
+//            currentPart = "";
+//         }
+//         char c = expression[i];
+//         expressionParts.push_back(string(1,c));
+//      } else if ((expression[i] >= '0' && expression[i] <= '9') || (expression[i] >= 'a' && expression[i] <= 'z') || (expression[i] >= 'A' && expression[i] <= 'Z')) {
+//         char c = expression[i];
+//         currentPart += string(1,c);
+//      } else if (expression[i] == '\'') {
+//         expressionParts.push_back(expression.substr(i, 3));
+//         i += 2;
+//      }
+//   }
+//   
+//   if (currentPart != "") {
+//      expressionParts.push_back(currentPart);
+//      currentPart = "";
+//   }
+//   
+//   int openBracketsCounter = 0;
+//   for (int i=0; i<expressionParts.size(); i++) {
+//      if (expressionParts[i].substr(0,2) == "0x") {
+//         for (int j=2; j < expressionParts[i].length(); j++) {
+//            if (!isHexDigit(expressionParts[i][j])) {
+//               return false;
+//            }
+//         }
+//         
+//         
+//      } else if (expressionParts[i].substr(0,2) == "0b") {
+//         for (int j=2; j<expressionParts[i].length(); j++) {
+//            if (expressionParts[i][j] != '0' && expressionParts[i][j] != '1') {
+//               return false;
+//            }
+//         }
+//         
+//      } else if (isInteger(expressionParts[i])) {
+//         
+//      } else if (expressionParts[i] == "(") {
+//         openBracketsCounter++;
+//      } else if (expressionParts[i] == ")") {
+//         if (openBracketsCounter <= 0) {
+//            return false;
+//         }
+//         openBracketsCounter--;
+//      } else if (expressionParts[i][0] == '\'' && expressionParts[i][2] == '\'') {
+//         
+//      }
+//   }
    
-   if (currentPart != "") {
-      expressionParts.push_back(currentPart);
-      currentPart = "";
+   if (expression.length() > 0) {
+      return true;
    }
-   
-   int openBracketsCounter = 0;
-   for (int i=0; i<expressionParts.size(); i++) {
-      if (expressionParts[i].substr(0,2) == "0x") {
-         for (int j=2; j < expressionParts[i].length(); j++) {
-            if (!isHexDigit(expressionParts[i][j])) {
-               return false;
-            }
-         }
-         
-         
-      } else if (expressionParts[i].substr(0,2) == "0b") {
-         for (int j=2; j<expressionParts[i].length(); j++) {
-            if (expressionParts[i][j] != '0' && expressionParts[i][j] != '1') {
-               return false;
-            }
-         }
-         
-      } else if (isInteger(expressionParts[i])) {
-         
-      } else if (expressionParts[i] == "(") {
-         openBracketsCounter++;
-      } else if (expressionParts[i] == ")") {
-         if (openBracketsCounter <= 0) {
-            return false;
-         }
-         openBracketsCounter--;
-      } else if (expressionParts[i][0] == '\'' && expressionParts[i][2] == '\'') {
-         
-      }
-   }
-   
    // TODO: Finish method
-   return true;
+   return false;
 }
 
 bool isCalculatableExpression(string expr) {
