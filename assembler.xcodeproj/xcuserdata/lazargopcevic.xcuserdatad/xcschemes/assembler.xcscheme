@@ -68,7 +68,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "output.o"
+            argument = "output.txt"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

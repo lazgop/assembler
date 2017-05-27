@@ -10,6 +10,8 @@
 #include <vector>
 #include <iostream>
 #include "symboltable.h"
+#include "filemanager.hpp"
+#include "keywordsutil.h"
 
 using namespace std;
 
@@ -23,7 +25,25 @@ bool SymbolTable::contains(string name){
    }
    return false;
 }
+
+void SymbolTable::outputSymbolTable(ofstream &out) {
+   out << "#TabelaSimbola" << endl;
+   
+   for (int i=0; i < SymbolTable::entries.size(); i++) {
+      out << SymbolTable::entries[i].type
+      << " " << SymbolTable::entries[i].numID
+      << " " << SymbolTable::entries[i].name
+      << " " << SymbolTable::entries[i].sectionID
+      << " 0x" << getHexStringFromInt(SymbolTable::entries[i].addr)
+      << " 0x" << getHexStringFromInt(SymbolTable::entries[i].size)
+      << " " << (SymbolTable::entries[i].type == "SYM" ? SymbolTable::entries[i].flags : "L")
+      << endl;
+   }
+}
+
 void SymbolTable::outputSymbolTable() {
+   cout << "#TabelaSimbola" << endl;
+   
    cout << setw(10) << "TYPE"
    << setw(10) << "numID"
    << setw(10) << "name"

@@ -16,6 +16,7 @@
 #include "keywordsutil.h"
 #include "symboltable.h"
 #include "symboltableentry.h"
+#include "usymboltable.h"
 #include "instructions.h"
 #include "directives.h"
 #include "section.hpp"
@@ -25,17 +26,34 @@ using namespace std;
 
 void assemblerFistPass(list<InputLine> *inputFile) {
    
+   // UNDEF section
+   SymbolTableEntry entry = SymbolTableEntry();
+   entry.type = "SEG";
+   entry.numID = 0;
+   entry.name = "UNDEF";
+   entry.sectionID = 0;
+   entry.addr = 0;
+   SymbolTable::pushBack(entry);
+   // end UNDEF section
+   
    int locationCounter = 0;
    int addressCounter = 0;
-   int lastSectionIndex = -1;
+   int lastSectionIndex = 0;
    bool lastDirectiveORG = false;
    int lastDirectiveORGAdress = -1;
    
    for (list<InputLine>::iterator iterator = inputFile->begin(); iterator != inputFile->end(); iterator++) {
       //find symbol or section and increment locationCounter
-      string word = iterator->words[0];
+      
+      string firstWord = iterator->getFirstWord();
+      if (firstWord == ".end") {
+         break;
+      }
+      if (firstWord == "") {
+         continue;
+      }
       if (lastDirectiveORG) {
-         if (isSection(word) && (lastDirectiveORGAdress >= addressCounter)) {
+         if (isSection(firstWord) && (lastDirectiveORGAdress >= addressCounter)) {
             addressCounter = lastDirectiveORGAdress;
             lastDirectiveORG = false;
          } else {
@@ -44,67 +62,80 @@ void assemblerFistPass(list<InputLine> *inputFile) {
          }
       }
       
-      if (isSection(word)) {
+      if (isSection(firstWord)) {
+         if (iterator->checkIfSomethingBehindWord(firstWord)) {
+            cout << "Error: Multiple commands in one line!" << endl;
+            throw exception();
+         }
+         
          SymbolTableEntry entry = SymbolTableEntry();
          entry.type = "SEG";
          entry.numID = (int)SymbolTable::entries.size();
-         entry.name = word;
+         entry.name = firstWord;
          entry.sectionID = entry.numID;
          entry.addr = addressCounter;
-         // TODO: Other fields
          
-         if (lastSectionIndex != -1) {
-            SymbolTable::entries[lastSectionIndex].size = locationCounter;
+         if (firstWord.find(".bss") != string::npos) {
+            entry.flags = "ARW";
+         } else if (firstWord.find(".text") != string::npos) {
+            entry.flags = "ARX";
+         } else if (firstWord.find(".data") != string::npos) {
+            entry.flags = "ARW";
+         } else if (firstWord.find(".rodata") != string::npos) {
+            entry.flags = "AR";
          }
+         
+         SymbolTable::entries[lastSectionIndex].size = locationCounter;
          
          locationCounter = 0;
          
          SymbolTable::pushBack(entry);
          lastSectionIndex = (int)SymbolTable::entries.size() - 1;
-      } else {
-         vector<string> curWords = iterator->words;
-         if (isLabel(word)) {
-            word = word.substr(0, word.length() - 1);
-            SymbolTableEntry entry = SymbolTableEntry();
-            entry.type = "SYM";
-            entry.numID = (int)SymbolTable::entries.size();
-            entry.name = word;
-            entry.flags = "L";
-            entry.sectionID = lastSectionIndex;
-            entry.addr = locationCounter;
-            
-            // TODO: Other fields
-            SymbolTable::pushBack(entry);
-            if (!(iterator->words.size() > 1)) {
-               continue;
-            }
-            
-            curWords = vector<string>();
-            for (int i = 1; i < iterator->words.size(); i++) {
-               curWords.push_back(iterator->words[i]);
-            }
-         }
-         
-         Instruction ins = Instruction(curWords);
-         if (!(ins.getType().compare("NONE") == 0)) {
-            locationCounter+=ins.getSize();
-            addressCounter += ins.getSize();
-            continue;
-         }
-         
-         // TODO: Directive
-         Directive dir = Directive(curWords);
-         if (!(dir.getType().compare("NONE") == 0)) {
-            if (dir.getType().compare("ORG") == 0) {
-               lastDirectiveORG = true;
-               lastDirectiveORGAdress = dir.getSize();
-            } else {
-               locationCounter += dir.getSize();
-               addressCounter += dir.getSize();
-            }
-            continue;
-         }
+         continue;
       }
+      
+      if (isLabel(firstWord)) {
+         string labelName = firstWord.substr(0, firstWord.length() - 1);
+         SymbolTableEntry entry = SymbolTableEntry();
+         entry.type = "SYM";
+         entry.numID = (int)SymbolTable::entries.size();
+         entry.name = labelName;
+         entry.flags = "L";
+         entry.sectionID = lastSectionIndex;
+         entry.addr = locationCounter;
+         
+         SymbolTable::pushBack(entry);
+         
+         if (!(iterator->checkIfSomethingBehindWord(firstWord))) {
+            continue;
+         }
+         firstWord = iterator->getNextWordAfter(firstWord);
+      }
+      
+      string afterFirstWord = iterator->getRemainingStringAfter(firstWord);
+      
+      Instruction ins = Instruction(firstWord, afterFirstWord);
+      if (!(ins.getType().compare("NONE") == 0)) {
+         locationCounter+=ins.getSize();
+         addressCounter += ins.getSize();
+         continue;
+      }
+      
+      // TODO: Directive
+      Directive dir = Directive(firstWord, afterFirstWord);
+      if (!(dir.getType().compare("NONE") == 0)) {
+         if (dir.getType().compare("ORG") == 0) {
+            lastDirectiveORG = true;
+            lastDirectiveORGAdress = dir.getSize();
+         } else {
+            locationCounter += dir.getSize();
+            addressCounter += dir.getSize();
+         }
+         continue;
+      }
+      
+      cout << "Error: Unknown line of code: " << endl;
+      throw exception();
    }
    
    if (USymbolTable::entries.size() > 0) {
@@ -121,46 +152,53 @@ void assemblerFistPass(list<InputLine> *inputFile) {
 void assemblerSecondPass(list<InputLine> *inputFile) {
    int locationCounter = 0;
    int addressCounter = 0;
-   int lastSectionIndex = -1;
    bool lastDirectiveORG = false;
    int lastDirectiveORGAdress = -1;
    
    for (list<InputLine>::iterator iterator = inputFile->begin(); iterator != inputFile->end(); iterator++) {
-      //find symbol or section and increment locationCounter
-      string word = iterator->words[0];
       
-      if (isSection(word)) {
-         Section section = Section(word);
+      //find symbol or section and increment locationCounter
+      string firstWord = iterator->getFirstWord();
+      
+      if (isSection(firstWord)) {
+         Section section = Section(firstWord);
          Sections::entries.push_back(section);
          locationCounter = 0;
-      } else {
-         vector<string> curWords = iterator->words;
-         if (isLabel(word)) {
-            curWords = vector<string>();
-            for (int i = 1; i < iterator->words.size(); i++) {
-               curWords.push_back(iterator->words[i]);
-            }
-         }
+         continue;
+      }
+      
+      if (isLabel(firstWord)) {
          
-//         Instruction ins = Instruction(curWords);
-//         if (!(ins.getType().compare("NONE") == 0)) {
-//            locationCounter+=ins.getSize();
-//            addressCounter += ins.getSize();
-//            continue;
-//         }
-         
-         Directive dir = Directive(curWords, locationCounter);
-         if (!(dir.getType().compare("NONE") == 0)) {
-            if (dir.getType().compare("ORG") == 0) {
-               lastDirectiveORG = true;
-               lastDirectiveORGAdress = dir.getSize();
-            } else {
-               locationCounter += dir.getSize();
-               addressCounter += dir.getSize();
-            }
+         if (!(iterator->checkIfSomethingBehindWord(firstWord))) {
             continue;
          }
+         firstWord = iterator->getNextWordAfter(firstWord);
       }
+      
+      string afterFirstWord = iterator->getRemainingStringAfter(firstWord);
+      
+      Instruction ins = Instruction(firstWord, afterFirstWord, locationCounter);
+      if (!(ins.getType().compare("NONE") == 0)) {
+         locationCounter+=ins.getSize();
+         addressCounter += ins.getSize();
+         for (int i = 0; i < ins.instruction.size(); i++) {
+            Sections::entries[Sections::entries.size() - 1].content.push_back(ins.instruction[i]);
+         }
+         continue;
+      }
+      
+      Directive dir = Directive(firstWord, afterFirstWord, locationCounter);
+      if (!(dir.getType().compare("NONE") == 0)) {
+         if (dir.getType().compare("ORG") == 0) {
+            lastDirectiveORG = true;
+            lastDirectiveORGAdress = dir.getSize();
+         } else {
+            locationCounter += dir.getSize();
+            addressCounter += dir.getSize();
+         }
+         continue;
+      }
+      
    }
    
    if (USymbolTable::entries.size() > 0) {
@@ -168,9 +206,6 @@ void assemblerSecondPass(list<InputLine> *inputFile) {
       throw exception();
    }
    
-   if (lastSectionIndex != -1) {
-      SymbolTable::entries[lastSectionIndex].size = locationCounter;
-   }
    locationCounter = 0;
 }
 
@@ -184,17 +219,23 @@ int main(int argc, const char * argv[]) {
    
    try {
       assemblerFistPass(inputFile);
-   }catch(exception e) {
-      // TODO: Handle
+   } catch (exception e) {
       return 1;
    }
-
+   
+   for (int i=0; i < USymbolTable::entries.size(); i++) {
+      // calculate expression value
+      // TODO: - maybe check if label is first operand
+   }
+   
+   if (USymbolTable::entries.size() > 0) {
+      cout << "Error: Uncalculatable symbol/s found in Uncalculatable Symbols Table!" << endl;
+      return 1;
+   }
+   
    try {
       assemblerSecondPass(inputFile);
-      SymbolTable::outputSymbolTable();
-      Sections::outputSections();
    }catch(exception e) {
-      // TODO: Handle
       return 2;
    }
    
@@ -204,6 +245,12 @@ int main(int argc, const char * argv[]) {
          return 2;
       }
    }
+   
+   
+   SymbolTable::outputSymbolTable();
+   Sections::outputSections();
+   
+   FileManager::outputToFile(argv[2]);
    
    return 0;
 }

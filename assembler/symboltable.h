@@ -10,8 +10,8 @@
 #define symboltable_h
 
 #include <vector>
+#include <fstream>
 #include "symboltableentry.h"
-
 using namespace std;
 
 class SymbolTable{
@@ -20,7 +20,7 @@ public:
    static bool contains(string name);
    static void pushBack(SymbolTableEntry);
    
+   static void outputSymbolTable(ofstream &out);
    static void outputSymbolTable();
-   
 };
 #endif /* symboltable_h */
