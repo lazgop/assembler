@@ -185,7 +185,7 @@ bool isRegister(string word){
    string registerNames[] = {"R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10", "R11", "R12", "R13", "R14", "R15", "PC", "SP"};
    int registerNamesLength = 18;
    string test = word;
-   transform(test.begin(), test.end(), test.begin(), ::toupper);
+//   transform(test.begin(), test.end(), test.begin(), ::toupper);
    for (int i=0; i < registerNamesLength; i++) {
       if (test.compare(registerNames[i]) == 0) {
          return true;

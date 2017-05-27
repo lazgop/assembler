@@ -64,7 +64,7 @@ void Sections::outputSections(ofstream &out) {
       
       for (int j=0; j < Sections::entries[i].relTable.entries.size(); j++) {
          RelocationTableEntry rte = Sections::entries[i].relTable.entries[j];
-         out << "0x" << getHexStringFromInt(rte.address + SymbolTable::entries[Sections::entries[i].numID].addr)
+         out << "0x" << getHexStringFromInt(rte.address)
          << " " << rte.type
          << " " << rte.numID
          << endl;

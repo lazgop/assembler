@@ -9,6 +9,8 @@
 #ifndef keywordsutil_h
 #define keywordsutil_h
 
+#include <vector>
+
 using namespace std;
 
 bool isInteger(const std::string & s);

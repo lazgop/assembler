@@ -318,10 +318,16 @@ Instruction::Instruction(string keyWord, string afterKeyword, int lc) {
       };
    }
    
-   Section currentSection = Sections::entries[Sections::entries.size() - 1];
-   if (type != "NONE" && (SymbolTable::entries[currentSection.numID].flags.find("X") == string::npos)) {
-      cout << "Error: Trying to execute instruction outside of .text section!" << endl;
-      throw exception();
+   if (type != "NONE") {
+      if (Sections::entries.size() == 0) {
+         cout << "Error: Trying to execute instruction outside of .text section!" << endl;
+         throw exception();
+      }
+      Section currentSection = Sections::entries[Sections::entries.size() - 1];
+      if ((SymbolTable::entries[currentSection.numID].flags.find("X") == string::npos)) {
+         cout << "Error: Trying to execute instruction outside of .text section!" << endl;
+         throw exception();
+      }
    }
 }
 
