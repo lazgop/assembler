@@ -41,10 +41,6 @@ Instruction::Instruction(string keyWord, string afterKeyword) {
                   cout << "Error: Mismatch number of operands for INT instruction!" << endl;
                   throw exception();
                }
-               if (!isRegister(operands[0])) {
-                  cout << "Error: INT instruction operand must be a register!" << endl;
-                  throw exception();
-               }
                size = 4;
                break;
             case 1: case 2: // "JMP", "CALL"
@@ -176,8 +172,9 @@ Instruction::Instruction(string keyWord, string afterKeyword, int lc) {
                // Only register direct
                size = 4;
                instruction.push_back(0); // opcode
-               int reg0 = getRegNumFromOp(operands[0]);
-               instruction.push_back(reg0); // addressing and reg0
+               // IVT has only 32 entries, so entry number can be coded directly into instruction in the place of reg0
+               int intNum = getExpressionValue(operands[0]);
+               instruction.push_back(intNum); // addressing and reg0
                instruction.push_back(0);
                instruction.push_back(0);
                locationCounter += 4;

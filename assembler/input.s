@@ -5,4 +5,5 @@ a: DB -64
 .global START
 START:
  LOADSB R1, $a
+ INT 0
 .end
