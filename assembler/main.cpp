@@ -53,9 +53,8 @@ void assemblerFistPass(list<InputLine> *inputFile) {
          continue;
       }
       if (lastDirectiveORG) {
-         if (isSection(firstWord) && (lastDirectiveORGAdress >= addressCounter)) {
+         if (isSection(firstWord)) {
             addressCounter = lastDirectiveORGAdress;
-            lastDirectiveORG = false;
          } else {
             cout << "Error: No section after ORG directive or ORG address less than current address!" << endl;
             throw exception();
@@ -73,7 +72,12 @@ void assemblerFistPass(list<InputLine> *inputFile) {
          entry.numID = (int)SymbolTable::entries.size();
          entry.name = firstWord;
          entry.sectionID = entry.numID;
-         entry.addr = addressCounter;
+         if (lastDirectiveORG) {
+            entry.addr = addressCounter;
+            lastDirectiveORG = false;
+         } else {
+            entry.addr = 0;
+         }
          
          if (firstWord.find(".bss") != string::npos) {
             entry.flags = "ARW";
