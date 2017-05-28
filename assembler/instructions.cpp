@@ -281,7 +281,8 @@ Instruction::Instruction(string keyWord, string afterKeyword, int lc) {
             instruction.push_back(0x21);
          }
          instruction.push_back(getRegNumFromOp(operands[0]));
-         instruction.push_back(0);
+         instruction.push_back(0); // Unused
+         instruction.push_back(0); // Unused
          locationCounter += 4;
          break;
       }
