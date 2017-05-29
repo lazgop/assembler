@@ -33,6 +33,11 @@ public:
                break;
             }
             
+            size_t comment = line.find(";");
+            if (comment != string::npos){
+               line = line.substr(0, comment);
+            }
+            
             line = trimSpacesFromStr(line);
             
             if (line.compare("") == 0) {

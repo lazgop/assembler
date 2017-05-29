@@ -267,7 +267,6 @@ Instruction::Instruction(string keyWord, string afterKeyword, int lc) {
                int c = displacement >> (8*i);
                instruction.push_back(char(c));
             }
-            cout << endl;
          }
          break;
       }

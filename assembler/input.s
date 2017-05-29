@@ -1,23 +1,20 @@
-ORG 300
 .data
-a: DD 128, 12
-ORG 128
-.text.12
+n: DW 10000
+ORG 0x100
+.text
 .global START
-START:
- LOAD R1, #-25
- LOAD R2, #26
-CALL subtr
- ADD R0, R1, R2
- LOAD R0, #0
-JMP exit
-subtr:
- SUB R0, R1, R2
- RET
-exit:
-  INT 0
-.text.13
-  SUB R0, R1, R2
-.data.11
-DD 30 DUP 8
+ START:
+ LOAD R1, #timer ; get address of timer routine
+ STORE R1, 4*4 ; store address of timer routine in IVT entry 4
+ LOAD R1, #1
+loop:
+ LOADSW R0, n
+ SUB R0, R0, R1
+ STOREW R0, n
+ JNZ R0, loop
+ INT 0
+
+timer:
+  LOAD R4, #4
+  RET
 .end

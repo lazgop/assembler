@@ -22,7 +22,7 @@ public:
    InputLine(string line) {
       words = vector<string>();
       this->line = line;
-      string word = "";
+//      string word = "";
 //      bool labelFound = false;
 //      bool spaceFound = false;
 //      for (int i=0; i < line.length(); i++) {
