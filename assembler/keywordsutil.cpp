@@ -394,6 +394,10 @@ int evalPostfix(vector<string> postfix) {
          } else if (isInteger(ch)){
             operand.calculated = true;
             operand.value = stoi(ch);
+         } else if (ch[0] == '\'' && ch[2] == '\'') {
+            char c = ch[1];
+            operand.calculated = true;
+            operand.value = (int)c;
          } else {
             operand.calculated = false;
             operand.label = ch;

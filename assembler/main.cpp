@@ -142,6 +142,40 @@ void assemblerFistPass(list<InputLine> *inputFile) {
       throw exception();
    }
    
+   
+   bool calculatedSymbolInThisPass = false;
+   do {
+      calculatedSymbolInThisPass = false;
+      for (int i=0; i < USymbolTable::entries.size(); i++) {
+         if(USymbolTable::entries[i].name != "-1") {
+            try {
+               int val = getExpressionValue(USymbolTable::entries[i].expression);
+               SymbolTableEntry entry = SymbolTableEntry();
+               entry.type = "SYM";
+               entry.numID = (int)SymbolTable::entries.size();
+               entry.name = USymbolTable::entries[i].name;
+               entry.flags = "L";
+               entry.sectionID = -1;
+               entry.addr = val;
+               SymbolTable::pushBack(entry);
+               calculatedSymbolInThisPass = true;
+               USymbolTable::entries[i].name = "-1";
+            } catch (...) {
+               
+            }
+         }
+      }
+   }while(calculatedSymbolInThisPass);
+   
+   vector<USymbolTableEntry> tmpUSymbTbl = vector<USymbolTableEntry>();
+   for (int i=0; i < USymbolTable::entries.size(); i++) {
+      if (USymbolTable::entries[i].name != "-1") {
+         tmpUSymbTbl.push_back(USymbolTable::entries[i]);
+      }
+   }
+   USymbolTable::entries = tmpUSymbTbl;
+   
+   
    if (USymbolTable::entries.size() > 0) {
       cout << "Error: Uncalculatable symbols in USTable found!" << endl;
       throw exception();

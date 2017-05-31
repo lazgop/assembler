@@ -126,16 +126,28 @@ Instruction::Instruction(string keyWord, string afterKeyword) {
          break;
       }
       case 3: { // AL
-         if (operands.size() != 3) {
+         if (operands.size() != 3 && keyWord != "NOT") {
+            cout << "Error: Mismatch number of operands for A/L instruction!" << endl;
+            throw exception();
+         } else if (operands.size() != 2 && keyWord == "NOT") {
             cout << "Error: Mismatch number of operands for A/L instruction!" << endl;
             throw exception();
          }
          string reg0 = operands[0];
          string reg1 = operands[1];
-         string reg2 = operands[2];
-         if (!isRegister(reg1) || !isRegister(reg1) || !isRegister(reg2)) {
+         string reg2;
+         if (keyWord != "NOT") {
+            reg2 = operands[2];
+         }
+         if (!isRegister(reg1) || !isRegister(reg1)) {
             cout << "Error: A/L instruction operands must be registers" << endl;
             throw exception();
+         }
+         if (keyWord != "NOT") {
+            if (!isRegister(reg2)) {
+               cout << "Error: A/L instruction operands must be registers" << endl;
+               throw exception();
+            }
          }
          type = "AL";
          size = 4;
@@ -294,8 +306,12 @@ Instruction::Instruction(string keyWord, string afterKeyword, int lc) {
          
          int reg0 = getRegNum(operands[0]);
          int reg1 = getRegNum(operands[1]);
-         int reg2 = getRegNum(operands[2]);
-         
+         int reg2;
+         if (keyWord != "NOT") {
+            reg2 = getRegNum(operands[2]);
+         } else {
+            reg2 = 0;
+         }
          int insRem = 0b000;
          insRem = (insRem << 8) + reg0;
          insRem = (insRem << 5) + reg1;
