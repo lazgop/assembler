@@ -285,8 +285,8 @@ int main(int argc, const char * argv[]) {
    }
    
    
-   SymbolTable::outputSymbolTable();
-   Sections::outputSections();
+//   SymbolTable::outputSymbolTable();
+//   Sections::outputSections();
    
    FileManager::outputToFile(argv[2]);
    

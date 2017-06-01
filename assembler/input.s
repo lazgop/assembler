@@ -1,33 +1,42 @@
-.data
-n: DD 5555
-ORG 0x100
 .text
+START:
 .global START
- START:
- LOAD R1, #timer ; get address of timer routine
- STORE R1, 4*4 ; store address of timer routine in IVT entry 4
- LOAD R1, #keyboard ; get address of keyboard routine
- STORE R1, 5*4 ; store address of keyboard routine in IVT entry 5
- LOAD R1, #error ; get address of error routine
- STORE R1, 3*4 ; store address of error routine in IVT entry 3
- LOAD R1, #65
- STOREB R1, 32*4
- LOAD R1, #66
- STOREB R1, 32*4
- LOAD R1, #48 ; store ascii for '0' in R1
- NOT R2, R2
-loop: ; loop until '0' is entered on keyboard
- SUB R0, R1, R5
- JNZ R0, loop
- INT 0
+LOAD R0, currentTimeCounter
+LOAD R1, #1
+ADD R0, R0, R1
+STORE R0, currentTimeCounter
+LOAD R2, currentTimeCounter
+SUB R2, R2, R1
 
-error:
-  INT 0
+JNZ R2, kraj
 
-timer:
-  RET
+LOAD R0, outputRegAddress
+LOAD R2, #'O'
+STORE R2, [R0]
 
-keyboard:
-  ;LOADUB R5, 33*4 ; read char from inputreg
-  RET
-.end
+LOAD R0, rodatavalue
+LOAD R1, #1
+ADD R0, R0, R1
+STORE R0, rodatavalue
+LOAD R2, rodatavalue
+SUB R2, R2, R1
+JZ R2, kraj
+
+LOAD R0, outputRegAddress
+LOAD R2, #'K'
+STORE R2, [R0]
+
+kraj:
+INT 0
+
+.data
+currentTimeCounter: DD 0
+
+.rodata
+
+rodatavalue: DD 0
+inputRegAddress: DD 33*4
+outputRegAddress: DD 32*4
+timerAddress: DD 4*4
+errorAddress: DD 3*4
+keyboardAddress: DD 5*4
